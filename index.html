@@ -3,1248 +3,517 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>JLPT N5 Rapid Flashcard App</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter & Noto Sans JP -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;600;800&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            jp: ['"Noto Sans JP"', 'sans-serif'],
-          },
-          colors: {
-            sakura: {
-              50: '#fff5f7',
-              100: '#ffe4e9',
-              500: '#f43f5e',
-              600: '#e11d48',
-            },
-            zen: {
-              850: '#151921',
-              900: '#0d1117',
-              950: '#070a0e',
-            }
-          }
-        }
-      }
-    }
-  </script>
-
+  <title>JLPT N5 Rapid Flashcards</title>
   <style>
-    /* Card 3D Flip Styles */
-    .perspective-1000 {
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Meiryo", sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+    }
+    header {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .badge {
+      background: #334155;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+    .controls-bar {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    select {
+      flex: 1;
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .card-wrap {
+      width: 100%;
+      max-width: 480px;
+      height: 250px;
       perspective: 1000px;
+      cursor: pointer;
+      margin-bottom: 16px;
     }
-    .transform-style-3d {
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
       transform-style: preserve-3d;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
     }
-    .backface-hidden {
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-    }
-    .rotate-y-180 {
+    .card-inner.flipped {
       transform: rotateY(180deg);
     }
-    .card-transition {
-      transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18px;
     }
-    /* Wave animation for active microphone */
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { transform: scale(1.05); box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    .card-back {
+      transform: rotateY(180deg);
+      background: #172033;
+      border-color: #3b82f6;
     }
-    .mic-recording {
-      animation: pulse-ring 1.5s infinite;
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
     }
-    /* Custom Scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+    .prompt-text {
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin: auto 0;
+      color: var(--text-main);
     }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 9999px;
+    .answer-kana {
+      font-size: 1.4rem;
+      color: var(--accent);
+      font-weight: 600;
+      text-align: center;
     }
-    .dark ::-webkit-scrollbar-thumb {
-      background: #334155;
+    .answer-romaji {
+      font-size: 1.1rem;
+      color: #cbd5e1;
+      text-align: center;
+      font-style: italic;
     }
+    .answer-meaning {
+      font-size: 1.3rem;
+      color: #f1f5f9;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 4px;
+    }
+    .tap-hint {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .input-section {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .input-box {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      user-select: text;
+    }
+    .input-box:focus {
+      border-color: var(--accent);
+    }
+    .icon-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+    .icon-btn.recording {
+      background: #7f1d1d;
+      border-color: var(--danger);
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
+    }
+    .action-grid {
+      width: 100%;
+      max-width: 480px;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .btn {
+      padding: 14px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: #fff;
+    }
+    .btn-missed { background: #dc2626; }
+    .btn-flip { background: #3b82f6; }
+    .btn-gotit { background: #16a34a; }
+    .btn:active { opacity: 0.8; transform: translateY(1px); }
+    .status-msg {
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      min-height: 24px;
+      margin-bottom: 8px;
+    }
+    .status-msg.correct { color: var(--success); }
+    .status-msg.incorrect { color: var(--danger); }
+    .status-msg.info { color: var(--accent); }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-zen-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 select-none">
-
-  <!-- Top App Navigation Bar -->
-  <header class="w-full bg-white/80 dark:bg-zen-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 sticky top-0 z-40 px-4 py-3 sm:px-6">
-    <div class="max-w-4xl mx-auto flex items-center justify-between">
-      <div class="flex items-center space-x-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center text-white font-jp font-bold shadow-md shadow-rose-500/20">
-          語
-        </div>
-        <div>
-          <h1 class="text-base font-bold tracking-tight text-slate-900 dark:text-white leading-tight">JLPT N5 Rapid</h1>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">15 Lessons · Voice & Rapid Prompt</p>
-        </div>
-      </div>
-
-      <!-- Quick Metrics & Drawer Buttons -->
-      <div class="flex items-center space-x-2">
-        <div class="hidden sm:flex items-center space-x-3 text-xs bg-slate-100 dark:bg-slate-800/70 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700">
-          <span class="text-emerald-600 dark:text-emerald-400 font-semibold" id="top-accuracy">100% Acc</span>
-          <span class="text-slate-300 dark:text-slate-600">|</span>
-          <span class="text-amber-500 font-semibold flex items-center gap-1" id="top-streak">🔥 0 streak</span>
-        </div>
-
-        <!-- Audio Output Toggle Button -->
-        <button id="toggle-mute-btn" title="Toggle Auto Speak" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-          <svg id="audio-icon-on" class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-          <svg id="audio-icon-off" class="w-5 h-5 text-slate-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
-        </button>
-
-        <!-- Dark/Light Mode -->
-        <button id="theme-toggle-btn" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle Theme">
-          <svg id="sun-icon" class="w-5 h-5 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-          <svg id="moon-icon" class="w-5 h-5 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-        </button>
-
-        <!-- Settings Drawer Toggle -->
-        <button id="open-settings-btn" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition relative" title="Filters & Settings">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        </button>
-      </div>
-    </div>
+<body>
+  <header>
+    <span>JLPT N5 Core Vocab</span>
+    <span class="badge" id="stats">Card 1 of --</span>
   </header>
 
-  <!-- Main Container -->
-  <main class="flex-1 max-w-xl w-full mx-auto px-4 py-4 sm:py-6 flex flex-col justify-between">
-    
-    <!-- Status / Progress Bar -->
-    <div class="space-y-1.5 mb-2">
-      <div class="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400 font-medium px-1">
-        <span id="lesson-label-badge" class="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50">Lesson 1</span>
-        <span id="prompt-mode-badge" class="px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Prompt: Kanji → EN</span>
-        <span id="card-counter">1 / 50</span>
-      </div>
-      <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-        <div id="session-progress" class="h-full bg-gradient-to-r from-indigo-500 to-rose-500 rounded-full transition-all duration-300" style="width: 2%;"></div>
-      </div>
-    </div>
+  <div class="controls-bar">
+    <select id="lessonFilter">
+      <option value="all">All Lessons (677 Words)</option>
+      <option value="1">Lesson 1: Greetings & Basics (40)</option>
+      <option value="2">Lesson 2: Items & Family (46)</option>
+      <option value="3">Lesson 3: Office & Positions (52)</option>
+      <option value="4">Lesson 4: Time & Calendar (64)</option>
+      <option value="5">Lesson 5: Travel, Food & Verbs (54)</option>
+      <option value="6">Lesson 6: Transit & Directions (54)</option>
+      <option value="7">Lesson 7: Work & Activities (44)</option>
+      <option value="8">Lesson 8: Adjectives & Weather (51)</option>
+      <option value="9">Lesson 9: Food & Dining (50)</option>
+      <option value="10">Lesson 10: Likes & Leisure (47)</option>
+      <option value="11">Lesson 11: Daily Verbs & Seasons (46)</option>
+      <option value="12">Lesson 12: Weather & Nature (45)</option>
+      <option value="13">Lesson 13: Shopping & Clothes (45)</option>
+      <option value="14">Lesson 14: Counters & Requests (52)</option>
+      <option value="15">Lesson 15: Health & Ability (47)</option>
+    </select>
 
-    <!-- 3D Flashcard Component -->
-    <div class="w-full my-auto perspective-1000 min-h-[300px] sm:min-h-[340px] flex items-center justify-center cursor-pointer" id="flashcard-container">
-      <div id="flashcard" class="relative w-full h-[320px] sm:h-[350px] transform-style-3d card-transition rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-zen-950/70 border border-slate-200/80 dark:border-slate-800">
-        
-        <!-- FRONT SIDE -->
-        <div class="absolute inset-0 w-full h-full backface-hidden rounded-3xl bg-white dark:bg-zen-850 p-6 flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <span class="text-xs uppercase tracking-wider font-semibold text-rose-500 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block"></span>
-              Prompt (<span id="prompt-type-name">Kanji</span>)
-            </span>
-            <button id="pronounce-prompt-btn" class="p-2 rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Speak prompt">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-            </button>
-          </div>
+    <select id="promptMode">
+      <option value="kanji">Prompt: Kanji / Furigana</option>
+      <option value="kana">Prompt: Furigana / Kana</option>
+      <option value="romaji">Prompt: Romaji</option>
+      <option value="english">Prompt: English</option>
+      <option value="mixed">Prompt: Random Mix</option>
+    </select>
+  </div>
 
-          <!-- Central Prompt Display -->
-          <div class="my-auto text-center px-2 py-4">
-            <p id="card-prompt-sub" class="text-sm font-jp text-slate-400 dark:text-slate-500 mb-2 h-5"></p>
-            <h2 id="card-prompt-main" class="text-4xl sm:text-5xl font-extrabold tracking-tight font-jp text-slate-900 dark:text-white transition-all">
-              私
-            </h2>
-            <p id="card-expected-target" class="text-xs mt-3 text-slate-400 font-medium">Say or type in: <span class="font-semibold text-indigo-500" id="target-lang-hint">English</span></p>
-          </div>
-
-          <!-- Bottom hint to flip -->
-          <div class="text-center text-xs text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            <span>Tap card to reveal answer</span>
-          </div>
+  <div class="card-wrap" id="cardWrap">
+    <div class="card-inner" id="cardInner">
+      <div class="card-front">
+        <div class="card-meta">
+          <span id="promptLabel">KANJI</span>
+          <button class="icon-btn" id="speakerBtn" style="padding:4px 8px; font-size:1rem;" title="Listen">🔊</button>
         </div>
-
-        <!-- BACK SIDE -->
-        <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-3xl bg-slate-900 dark:bg-zen-850 text-white p-6 flex flex-col justify-between border border-slate-700/60 shadow-2xl">
-          <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-            <span class="text-xs uppercase tracking-wider font-semibold text-emerald-400 flex items-center gap-1">
-              ✓ Full Breakdown
-            </span>
-            <div class="flex items-center gap-2">
-              <span id="card-lesson-tag" class="text-[11px] font-medium bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full border border-slate-700">L1</span>
-              <button id="pronounce-back-btn" class="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition" title="Speak Japanese">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-              </button>
-            </div>
-          </div>
-
-          <div class="my-auto space-y-3 text-center py-2">
-            <div>
-              <p class="text-xs font-mono text-indigo-400" id="back-furigana">わたし</p>
-              <h3 class="text-3xl sm:text-4xl font-black font-jp text-white mt-0.5" id="back-kanji">私</h3>
-            </div>
-            
-            <div class="inline-block px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-300" id="back-romaji">
-              watashi
-            </div>
-
-            <div class="pt-1">
-              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">English Meaning</p>
-              <p class="text-lg sm:text-xl font-bold text-emerald-300 leading-snug px-3" id="back-english">I / me</p>
-            </div>
-          </div>
-
-          <div class="text-center text-[11px] text-slate-400">
-            Tap to return to prompt
-          </div>
+        <div class="prompt-text" id="promptText">Loading...</div>
+        <div class="tap-hint">Tap card or press [Flip] to reveal</div>
+      </div>
+      <div class="card-back">
+        <div class="card-meta">
+          <span>ANSWER</span>
+          <span id="lessonTag" style="color:var(--accent);">L1</span>
         </div>
-
-      </div>
-    </div>
-
-    <!-- Feedback Banner -->
-    <div id="feedback-bar" class="h-10 my-2 flex items-center justify-center text-sm font-medium rounded-xl transition-all duration-200 opacity-0 pointer-events-none">
-      <span id="feedback-text">Correct! Perfect pronunciation.</span>
-    </div>
-
-    <!-- Voice & Text Input Section -->
-    <div class="space-y-3">
-      
-      <!-- Input bar with Mic and Submit -->
-      <form id="answer-form" class="relative flex items-center shadow-sm">
-        <input 
-          id="user-input" 
-          type="text" 
-          autocomplete="off" 
-          autocorrect="off" 
-          autocapitalize="off" 
-          spellcheck="false"
-          placeholder="Speak or type your answer..." 
-          class="w-full pl-4 pr-24 py-3.5 bg-white dark:bg-zen-850 border border-slate-300 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-medium transition"
-        />
-
-        <div class="absolute right-1.5 flex items-center space-x-1">
-          <!-- Voice Button -->
-          <button 
-            type="button" 
-            id="mic-btn" 
-            title="Speak answer (Microphone)" 
-            class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition focus:outline-none"
-          >
-            <svg id="mic-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-          </button>
-          
-          <!-- Submit Button -->
-          <button 
-            type="submit" 
-            id="submit-answer-btn" 
-            class="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition focus:outline-none shadow-md shadow-indigo-600/20"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-          </button>
+        <div style="margin: auto 0; display:flex; flex-direction:column; gap:6px;">
+          <div class="answer-kana" id="ansKana">--</div>
+          <div class="answer-romaji" id="ansRomaji">--</div>
+          <div class="answer-meaning" id="ansMeaning">--</div>
         </div>
-      </form>
-
-      <!-- Mic status tooltip -->
-      <p id="mic-status" class="text-center text-xs text-slate-400 h-4">Tap mic to speak</p>
-
-      <!-- Rapid Action Buttons (Thumb friendly on mobile) -->
-      <div class="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
-        <button 
-          id="btn-missed" 
-          class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-2 rounded-2xl bg-rose-50 hover:bg-rose-100 active:scale-95 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/60 font-semibold text-xs sm:text-sm transition shadow-sm"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-          <span>I Missed It</span>
-        </button>
-
-        <button 
-          id="btn-flip" 
-          class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-2 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-xs sm:text-sm transition shadow-sm"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-          <span>Flip Card</span>
-        </button>
-
-        <button 
-          id="btn-got-it" 
-          class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 active:scale-95 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-900/60 font-semibold text-xs sm:text-sm transition shadow-sm"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-          <span>Got It!</span>
-        </button>
+        <div class="tap-hint">Tap again to flip back</div>
       </div>
-
     </div>
+  </div>
 
-  </main>
+  <div class="status-msg" id="statusMsg"></div>
 
-  <!-- Bottom Session Bar / Mini Summary -->
-  <footer class="w-full bg-white dark:bg-zen-900 border-t border-slate-200 dark:border-slate-800/90 py-2.5 px-4 text-xs text-slate-500 dark:text-slate-400">
-    <div class="max-w-xl mx-auto flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <span>Reviewed: <strong id="stat-count" class="text-slate-800 dark:text-slate-200 font-semibold">0</strong></span>
-        <span>Correct: <strong id="stat-correct" class="text-emerald-600 dark:text-emerald-400 font-semibold">0</strong></span>
-        <span>Missed: <strong id="stat-missed" class="text-rose-500 font-semibold">0</strong></span>
-      </div>
-      <button id="retry-missed-btn" class="hidden text-rose-500 font-semibold hover:underline flex items-center gap-1">
-        <span>Retry Missed (<span id="retry-badge-count">0</span>)</span>
-      </button>
-    </div>
-  </footer>
+  <div class="input-section">
+    <input 
+      type="text" 
+      id="userInput" 
+      class="input-box" 
+      placeholder="Type answer & press Enter..." 
+      autocomplete="off" 
+      autocorrect="off" 
+      autocapitalize="off" 
+      spellcheck="false"
+    />
+    <button class="icon-btn" id="micBtn" title="Speak Answer">🎤</button>
+  </div>
 
-  <!-- Slide-Over Settings & Filter Drawer -->
-  <div id="settings-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-  <aside id="settings-drawer" class="fixed right-0 top-0 bottom-0 w-full max-w-sm bg-white dark:bg-zen-900 z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl border-l border-slate-200 dark:border-slate-800">
-    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-      <h2 class="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
-        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-        Study Configuration
-      </h2>
-      <button id="close-settings-btn" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-      </button>
-    </div>
+  <div class="action-grid">
+    <button class="btn btn-missed" id="btnMissed">✕ Missed</button>
+    <button class="btn btn-flip" id="btnFlip">↻ Flip</button>
+    <button class="btn btn-gotit" id="btnGotIt">✓ Got It</button>
+  </div>
 
-    <div class="flex-1 overflow-y-auto p-5 space-y-6">
-      
-      <!-- Prompt Mode Selection -->
-      <div>
-        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Prompt Mode</label>
-        <div class="space-y-1.5" id="mode-options-container">
-          <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">
-            <span class="text-sm font-medium">1. Kanji → English</span>
-            <input type="radio" name="promptMode" value="kanji-en" checked class="text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
-          </label>
-          <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">
-            <span class="text-sm font-medium">2. Furigana / Kana → English</span>
-            <input type="radio" name="promptMode" value="kana-en" class="text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
-          </label>
-          <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">
-            <span class="text-sm font-medium">3. Romaji → English</span>
-            <input type="radio" name="promptMode" value="romaji-en" class="text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
-          </label>
-          <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">
-            <span class="text-sm font-medium">4. English → Romaji</span>
-            <input type="radio" name="promptMode" value="en-romaji" class="text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
-          </label>
-          <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">
-            <span class="text-sm font-medium">5. Mixed / Random</span>
-            <input type="radio" name="promptMode" value="mixed" class="text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
-          </label>
-        </div>
-      </div>
-
-      <!-- Lesson Filter (1 to 15) -->
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Filter Lessons</label>
-          <div class="text-xs space-x-2">
-            <button id="btn-select-all-lessons" class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Select All</button>
-            <span class="text-slate-400">·</span>
-            <button id="btn-clear-lessons" class="text-slate-500 hover:underline">Only L1</button>
-          </div>
-        </div>
-        <div class="grid grid-cols-5 gap-2" id="lesson-checkbox-grid">
-          <!-- 15 Lesson pill buttons -->
-        </div>
-      </div>
-
-      <!-- Audio & Voice Options -->
-      <div class="space-y-3">
-        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Voice & Speech</label>
-        
-        <label class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-zen-850 border border-slate-200 dark:border-slate-800 cursor-pointer">
-          <div>
-            <p class="text-sm font-medium">Auto-Pronounce on Flip/Show</p>
-            <p class="text-[11px] text-slate-400">Plays native Japanese audio</p>
-          </div>
-          <input type="checkbox" id="setting-auto-speak" checked class="h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500" />
-        </label>
-
-        <label class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-zen-850 border border-slate-200 dark:border-slate-800 cursor-pointer">
-          <div>
-            <p class="text-sm font-medium">Continuous Mic (Hands-Free)</p>
-            <p class="text-[11px] text-slate-400">Auto-listen when card appears</p>
-          </div>
-          <input type="checkbox" id="setting-auto-listen" class="h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500" />
-        </label>
-      </div>
-
-      <!-- Reset Session -->
-      <div class="pt-2">
-        <button id="restart-deck-btn" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition shadow-lg shadow-indigo-600/20">
-          Apply & Restart Session
-        </button>
-      </div>
-
-    </div>
-  </aside>
-
-  <!-- Complete JLPT N5 Vocabulary Data (Extracted rigorously from PDF Lessons 1 - 15) -->
   <script>
-    const N5_VOCAB_DB = [
-      // Lesson 1
-      { lesson: 1, kana: "わたし", kanji: "私", romaji: "watashi", en: ["I", "me"] },
-      { lesson: 1, kana: "あなた", kanji: "", romaji: "anata", en: ["you"] },
-      { lesson: 1, kana: "さん", kanji: "", romaji: "san", en: ["Mr.", "Ms.", "Mr", "Ms"] },
-      { lesson: 1, kana: "にほん", kanji: "日本", romaji: "nihon", en: ["Japan"] },
-      { lesson: 1, kana: "ちゅうごく", kanji: "中国", romaji: "chuugoku", en: ["China"] },
-      { lesson: 1, kana: "かんこく", kanji: "韓国", romaji: "kankoku", en: ["Korea", "South Korea"] },
-      { lesson: 1, kana: "アメリカ", kanji: "", romaji: "amerika", en: ["USA", "America", "United States"] },
-      { lesson: 1, kana: "インド", kanji: "", romaji: "indo", en: ["India"] },
-      { lesson: 1, kana: "ドイツ", kanji: "", romaji: "doitsu", en: ["Germany"] },
-      { lesson: 1, kana: "だいがく", kanji: "大学", romaji: "daigaku", en: ["university", "college"] },
-      { lesson: 1, kana: "こうこう", kanji: "高校", romaji: "kookoo", en: ["high school", "highschool"] },
-      { lesson: 1, kana: "がっこう", kanji: "学校", romaji: "gakkoo", en: ["school"] },
-      { lesson: 1, kana: "せんせい", kanji: "先生", romaji: "sensee", en: ["teacher", "master", "doctor"] },
-      { lesson: 1, kana: "がくせい", kanji: "学生", romaji: "gakusee", en: ["student"] },
-      { lesson: 1, kana: "なまえ", kanji: "名前", romaji: "namae", en: ["name"] },
-      { lesson: 1, kana: "あのかた", kanji: "あの方", romaji: "anokata", en: ["that person"] },
-      { lesson: 1, kana: "から", kanji: "", romaji: "kara", en: ["from"] },
-      { lesson: 1, kana: "くる", kanji: "来る", romaji: "kuru", en: ["to come", "come"] },
-      { lesson: 1, kana: "いく", kanji: "行く", romaji: "iku", en: ["to go", "go"] },
-      { lesson: 1, kana: "どなた", kanji: "", romaji: "donata", en: ["who"] },
-      { lesson: 1, kana: "ともだち", kanji: "友達", romaji: "tomodachi", en: ["friend"] },
-      { lesson: 1, kana: "いしゃ", kanji: "医者", romaji: "isha", en: ["doctor", "physician"] },
-      { lesson: 1, kana: "エンジニア", kanji: "", romaji: "enjinia", en: ["engineer"] },
-      { lesson: 1, kana: "かいしゃいん", kanji: "会社員", romaji: "kaishain", en: ["company employee", "office worker"] },
-      { lesson: 1, kana: "サラリーマン", kanji: "", romaji: "sarariiman", en: ["company employee", "salaried worker", "salaryman"] },
-      { lesson: 1, kana: "おいしい", kanji: "美味しい", romaji: "oishii", en: ["delicious", "tasty"] },
-      { lesson: 1, kana: "おおきい", kanji: "大きい", romaji: "ookii", en: ["big", "large"] },
-      { lesson: 1, kana: "くに", kanji: "国", romaji: "kuni", en: ["country", "nation"] },
-      { lesson: 1, kana: "ご", kanji: "語", romaji: "go", en: ["language"] },
-      { lesson: 1, kana: "じん", kanji: "人", romaji: "jin", en: ["people", "person", "nationality"] },
-      { lesson: 1, kana: "コーヒー", kanji: "", romaji: "koohii", en: ["coffee"] },
-      { lesson: 1, kana: "あつい", kanji: "熱い", romaji: "atsui", en: ["hot"] },
-      { lesson: 1, kana: "さむい", kanji: "寒い", romaji: "samui", en: ["cold"] },
-      { lesson: 1, kana: "ほん", kanji: "本", romaji: "hon", en: ["book"] },
-      { lesson: 1, kana: "くるま", kanji: "車", romaji: "kuruma", en: ["car", "vehicle"] },
-      { lesson: 1, kana: "きょうしつ", kanji: "教室", romaji: "kyooshitsu", en: ["classroom"] },
-
-      // Lesson 2
-      { lesson: 2, kana: "いいえ", kanji: "", romaji: "iie", en: ["no"] },
-      { lesson: 2, kana: "おなじ", kanji: "同じ", romaji: "onaji", en: ["same"] },
-      { lesson: 2, kana: "かいしゃ", kanji: "会社", romaji: "kaisha", en: ["company"] },
-      { lesson: 2, kana: "しごと", kanji: "仕事", romaji: "shigoto", en: ["work", "job"] },
-      { lesson: 2, kana: "しりょう", kanji: "資料", romaji: "shiryoo", en: ["materials", "data", "information"] },
-      { lesson: 2, kana: "ざっし", kanji: "雑誌", romaji: "zasshi", en: ["magazine"] },
-      { lesson: 2, kana: "しんぶん", kanji: "新聞", romaji: "shimbun", en: ["newspaper"] },
-      { lesson: 2, kana: "しゃしん", kanji: "写真", romaji: "shashin", en: ["photograph", "photo", "picture"] },
-      { lesson: 2, kana: "かさ", kanji: "傘", romaji: "kasa", en: ["umbrella"] },
-      { lesson: 2, kana: "かばん", kanji: "鞄", romaji: "kaban", en: ["bag"] },
-      { lesson: 2, kana: "あした", kanji: "明日", romaji: "ashita", en: ["tomorrow"] },
-      { lesson: 2, kana: "どうぞ", kanji: "", romaji: "doozo", en: ["please", "here you are"] },
-      { lesson: 2, kana: "はいる", kanji: "入る", romaji: "hairu", en: ["to enter", "enter"] },
-      { lesson: 2, kana: "おちゃ", kanji: "お茶", romaji: "ocha", en: ["tea", "green tea"] },
-      { lesson: 2, kana: "みず", kanji: "水", romaji: "mizu", en: ["water"] },
-      { lesson: 2, kana: "こうちゃ", kanji: "紅茶", romaji: "koocha", en: ["black tea"] },
-      { lesson: 2, kana: "ジュース", kanji: "", romaji: "juusu", en: ["juice"] },
-      { lesson: 2, kana: "この", kanji: "", romaji: "kono", en: ["this"] },
-      { lesson: 2, kana: "その", kanji: "", romaji: "sono", en: ["that"] },
-      { lesson: 2, kana: "あの", kanji: "", romaji: "ano", en: ["that over there", "that"] },
-      { lesson: 2, kana: "どの", kanji: "", romaji: "dono", en: ["which"] },
-      { lesson: 2, kana: "これ", kanji: "", romaji: "kore", en: ["this", "this one"] },
-      { lesson: 2, kana: "それ", kanji: "", romaji: "sore", en: ["that", "that one"] },
-      { lesson: 2, kana: "あれ", kanji: "", romaji: "are", en: ["that one over there", "that"] },
-      { lesson: 2, kana: "どれ", kanji: "", romaji: "dore", en: ["which", "which one"] },
-      { lesson: 2, kana: "ひと", kanji: "人", romaji: "hito", en: ["person", "human", "people"] },
-      { lesson: 2, kana: "はは", kanji: "母", romaji: "haha", en: ["mother", "mom"] },
-      { lesson: 2, kana: "おかあさん", kanji: "お母さん", romaji: "okaasan", en: ["mother", "mom"] },
-      { lesson: 2, kana: "きれい", kanji: "綺麗", romaji: "kiree", en: ["beautiful", "clean", "pretty"] },
-      { lesson: 2, kana: "おとうと", kanji: "弟", romaji: "otooto", en: ["younger brother"] },
-      { lesson: 2, kana: "かぞく", kanji: "家族", romaji: "kazoku", en: ["family"] },
-      { lesson: 2, kana: "あに", kanji: "兄", romaji: "ani", en: ["elder brother", "older brother"] },
-      { lesson: 2, kana: "ちち", kanji: "父", romaji: "chichi", en: ["father", "dad"] },
-      { lesson: 2, kana: "だれ", kanji: "誰", romaji: "dare", en: ["who"] },
-
-      // Lesson 3
-      { lesson: 3, kana: "じむ", kanji: "事務", romaji: "jimu", en: ["office work"] },
-      { lesson: 3, kana: "てちょう", kanji: "手帳", romaji: "techoo", en: ["pocket notebook", "planner"] },
-      { lesson: 3, kana: "ノート", kanji: "", romaji: "nooto", en: ["notebook"] },
-      { lesson: 3, kana: "めいし", kanji: "名刺", romaji: "meeshi", en: ["business card"] },
-      { lesson: 3, kana: "えんぴつ", kanji: "鉛筆", romaji: "empitsu", en: ["pencil"] },
-      { lesson: 3, kana: "ボールペン", kanji: "", romaji: "boorupen", en: ["ballpoint pen", "pen"] },
-      { lesson: 3, kana: "パソコン", kanji: "", romaji: "pasokon", en: ["personal computer", "computer", "pc"] },
-      { lesson: 3, kana: "つくえ", kanji: "机", romaji: "tsukue", en: ["desk"] },
-      { lesson: 3, kana: "いす", kanji: "椅子", romaji: "isu", en: ["chair"] },
-      { lesson: 3, kana: "とけい", kanji: "時計", romaji: "tokei", en: ["clock", "watch"] },
-      { lesson: 3, kana: "え", kanji: "絵", romaji: "e", en: ["picture", "painting", "drawing"] },
-      { lesson: 3, kana: "ねこ", kanji: "猫", romaji: "neko", en: ["cat"] },
-      { lesson: 3, kana: "いぬ", kanji: "犬", romaji: "inu", en: ["dog"] },
-      { lesson: 3, kana: "うえ", kanji: "上", romaji: "ue", en: ["on", "above", "top", "up"] },
-      { lesson: 3, kana: "した", kanji: "下", romaji: "shita", en: ["under", "below", "down"] },
-      { lesson: 3, kana: "ひだり", kanji: "左", romaji: "hidari", en: ["left"] },
-      { lesson: 3, kana: "みぎ", kanji: "右", romaji: "migi", en: ["right"] },
-      { lesson: 3, kana: "となり", kanji: "隣", romaji: "tonari", en: ["next to", "neighbor"] },
-      { lesson: 3, kana: "かいぎしつ", kanji: "会議室", romaji: "kaigishitsu", en: ["meeting room", "conference room"] },
-      { lesson: 3, kana: "ごぜん", kanji: "午前", romaji: "gozen", en: ["morning", "am"] },
-      { lesson: 3, kana: "ごご", kanji: "午後", romaji: "gogo", en: ["afternoon", "pm"] },
-      { lesson: 3, kana: "ここ", kanji: "", romaji: "koko", en: ["here"] },
-      { lesson: 3, kana: "そこ", kanji: "", romaji: "soko", en: ["there"] },
-      { lesson: 3, kana: "あそこ", kanji: "", romaji: "asoko", en: ["over there"] },
-      { lesson: 3, kana: "どこ", kanji: "", romaji: "doko", en: ["where"] },
-      { lesson: 3, kana: "しょくどう", kanji: "食堂", romaji: "shokudoo", en: ["cafeteria", "dining hall"] },
-      { lesson: 3, kana: "へや", kanji: "部屋", romaji: "heya", en: ["room"] },
-      { lesson: 3, kana: "そと", kanji: "外", romaji: "soto", en: ["outside"] },
-      { lesson: 3, kana: "なか", kanji: "中", romaji: "naka", en: ["inside", "in"] },
-      { lesson: 3, kana: "トイレ", kanji: "", romaji: "toire", en: ["restroom", "toilet", "bathroom"] },
-      { lesson: 3, kana: "かいだん", kanji: "階段", romaji: "kaidan", en: ["stairs", "stairway"] },
-
-      // Lesson 4
-      { lesson: 4, kana: "ことし", kanji: "今年", romaji: "kotoshi", en: ["this year"] },
-      { lesson: 4, kana: "らいねん", kanji: "来年", romaji: "rainen", en: ["next year"] },
-      { lesson: 4, kana: "きょねん", kanji: "去年", romaji: "kyonen", en: ["last year"] },
-      { lesson: 4, kana: "こんげつ", kanji: "今月", romaji: "kongetsu", en: ["this month"] },
-      { lesson: 4, kana: "らいげつ", kanji: "来月", romaji: "raigetsu", en: ["next month"] },
-      { lesson: 4, kana: "せんげつ", kanji: "先月", romaji: "sengetsu", en: ["last month"] },
-      { lesson: 4, kana: "きょう", kanji: "今日", romaji: "kyoo", en: ["today"] },
-      { lesson: 4, kana: "きのう", kanji: "昨日", romaji: "kinoo", en: ["yesterday"] },
-      { lesson: 4, kana: "あさって", kanji: "", romaji: "asatte", en: ["day after tomorrow", "the day after tomorrow"] },
-      { lesson: 4, kana: "おととい", kanji: "", romaji: "ototoi", en: ["day before yesterday", "the day before yesterday"] },
-      { lesson: 4, kana: "いま", kanji: "今", romaji: "ima", en: ["now"] },
-      { lesson: 4, kana: "あさ", kanji: "朝", romaji: "asa", en: ["morning"] },
-      { lesson: 4, kana: "ひる", kanji: "昼", romaji: "hiru", en: ["daytime", "noon", "afternoon"] },
-      { lesson: 4, kana: "ばん", kanji: "晩", romaji: "ban", en: ["evening", "night"] },
-      { lesson: 4, kana: "よる", kanji: "夜", romaji: "yoru", en: ["night"] },
-      { lesson: 4, kana: "ぎんこう", kanji: "銀行", romaji: "ginkoo", en: ["bank"] },
-      { lesson: 4, kana: "ゆうびんきょく", kanji: "郵便局", romaji: "yuubinkyoku", en: ["post office"] },
-      { lesson: 4, kana: "としょかん", kanji: "図書館", romaji: "toshokan", en: ["library"] },
-      { lesson: 4, kana: "えいがかん", kanji: "映画館", romaji: "eigakan", en: ["movie theater", "cinema"] },
-      { lesson: 4, kana: "スーパー", kanji: "", romaji: "suupaa", en: ["supermarket"] },
-      { lesson: 4, kana: "びょういん", kanji: "病院", romaji: "byooin", en: ["hospital"] },
-      { lesson: 4, kana: "げつようび", kanji: "月曜日", romaji: "getsuyoobi", en: ["monday"] },
-      { lesson: 4, kana: "かようび", kanji: "火曜日", romaji: "kayoobi", en: ["tuesday"] },
-      { lesson: 4, kana: "すいようび", kanji: "水曜日", romaji: "suiyoobi", en: ["wednesday"] },
-      { lesson: 4, kana: "もくようび", kanji: "木曜日", romaji: "mokuyoobi", en: ["thursday"] },
-      { lesson: 4, kana: "きんようび", kanji: "金曜日", romaji: "kinyoobi", en: ["friday"] },
-      { lesson: 4, kana: "どようび", kanji: "土曜日", romaji: "doyoobi", en: ["saturday"] },
-      { lesson: 4, kana: "にちようび", kanji: "日曜日", romaji: "nichiyoobi", en: ["sunday"] },
-
-      // Lesson 5
-      { lesson: 5, kana: "たべる", kanji: "食べる", romaji: "taberu", en: ["to eat", "eat"] },
-      { lesson: 5, kana: "のむ", kanji: "飲む", romaji: "nomu", en: ["to drink", "drink"] },
-      { lesson: 5, kana: "あそぶ", kanji: "遊ぶ", romaji: "asobu", en: ["to play", "play"] },
-      { lesson: 5, kana: "ごはん", kanji: "ご飯", romaji: "gohan", en: ["meal", "rice", "cooked rice"] },
-      { lesson: 5, kana: "おさけ", kanji: "お酒", romaji: "osake", en: ["alcohol", "sake"] },
-      { lesson: 5, kana: "りょうり", kanji: "料理", romaji: "ryoori", en: ["cooking", "cuisine", "dish"] },
-      { lesson: 5, kana: "じかん", kanji: "時間", romaji: "jikan", en: ["time", "hours"] },
-      { lesson: 5, kana: "おしえる", kanji: "教える", romaji: "oshieru", en: ["to teach", "teach", "to tell"] },
-      { lesson: 5, kana: "ならう", kanji: "習う", romaji: "narau", en: ["to learn", "learn"] },
-      { lesson: 5, kana: "する", kanji: "", romaji: "suru", en: ["to do", "do"] },
-      { lesson: 5, kana: "かす", kanji: "貸す", romaji: "kasu", en: ["to lend", "lend"] },
-      { lesson: 5, kana: "かりる", kanji: "借りる", romaji: "kariru", en: ["to borrow", "borrow"] },
-      { lesson: 5, kana: "およぐ", kanji: "泳ぐ", romaji: "oyogu", en: ["to swim", "swim"] },
-      { lesson: 5, kana: "はしる", kanji: "走る", romaji: "hashiru", en: ["to run", "run"] },
-      { lesson: 5, kana: "あるく", kanji: "歩く", romaji: "aruku", en: ["to walk", "walk"] },
-      { lesson: 5, kana: "かう", kanji: "買う", romaji: "kau", en: ["to buy", "buy"] },
-      { lesson: 5, kana: "かく", kanji: "書く", romaji: "kaku", en: ["to write", "write"] },
-      { lesson: 5, kana: "こうえん", kanji: "公園", romaji: "kooen", en: ["park"] },
-
-      // Lesson 6
-      { lesson: 6, kana: "あう", kanji: "会う", romaji: "au", en: ["to meet", "meet"] },
-      { lesson: 6, kana: "れいぞうこ", kanji: "冷蔵庫", romaji: "reezooko", en: ["refrigerator", "fridge"] },
-      { lesson: 6, kana: "せんたくき", kanji: "洗濯機", romaji: "sentakuki", en: ["washing machine"] },
-      { lesson: 6, kana: "ドア", kanji: "", romaji: "doa", en: ["door"] },
-      { lesson: 6, kana: "まど", kanji: "窓", romaji: "mado", en: ["window"] },
-      { lesson: 6, kana: "あける", kanji: "開ける", romaji: "akeru", en: ["to open", "open"] },
-      { lesson: 6, kana: "しめる", kanji: "閉める", romaji: "shimeru", en: ["to close", "close"] },
-      { lesson: 6, kana: "いえ", kanji: "家", romaji: "ie", en: ["house", "home"] },
-      { lesson: 6, kana: "でんしゃ", kanji: "電車", romaji: "densha", en: ["train", "electric train"] },
-      { lesson: 6, kana: "ちかてつ", kanji: "地下鉄", romaji: "chikatetsu", en: ["subway", "metro"] },
-      { lesson: 6, kana: "じてんしゃ", kanji: "自転車", romaji: "jitensha", en: ["bicycle", "bike"] },
-      { lesson: 6, kana: "バス", kanji: "", romaji: "basu", en: ["bus"] },
-      { lesson: 6, kana: "ひこうき", kanji: "飛行機", romaji: "hikooki", en: ["airplane", "plane"] },
-      { lesson: 6, kana: "えき", kanji: "駅", romaji: "eki", en: ["station", "train station"] },
-      { lesson: 6, kana: "のる", kanji: "乗る", romaji: "noru", en: ["to get on", "ride", "board"] },
-      { lesson: 6, kana: "おりる", kanji: "降りる", romaji: "oriru", en: ["to get off", "get off"] },
-      { lesson: 6, kana: "みる", kanji: "見る", romaji: "miru", en: ["to see", "look", "watch"] },
-      { lesson: 6, kana: "みせ", kanji: "店", romaji: "mise", en: ["shop", "store", "restaurant"] },
-      { lesson: 6, kana: "いりぐち", kanji: "入口", romaji: "iriguchi", en: ["entrance"] },
-      { lesson: 6, kana: "でぐち", kanji: "出口", romaji: "deguchi", en: ["exit"] },
-
-      // Lesson 7
-      { lesson: 7, kana: "げんき", kanji: "元気", romaji: "genki", en: ["healthy", "energetic", "fine", "well"] },
-      { lesson: 7, kana: "はたらく", kanji: "働く", romaji: "hataraku", en: ["to work", "work"] },
-      { lesson: 7, kana: "べんきょう", kanji: "勉強", romaji: "benkyoo", en: ["study", "to study"] },
-      { lesson: 7, kana: "そうじ", kanji: "掃除", romaji: "sooji", en: ["cleaning", "to clean"] },
-      { lesson: 7, kana: "りょこう", kanji: "旅行", romaji: "ryokoo", en: ["travel", "trip", "vacation"] },
-      { lesson: 7, kana: "うたう", kanji: "歌う", romaji: "utau", en: ["to sing", "sing"] },
-      { lesson: 7, kana: "うた", kanji: "歌", romaji: "uta", en: ["song"] },
-      { lesson: 7, kana: "のみもの", kanji: "飲み物", romaji: "nomimono", en: ["drink", "beverage"] },
-      { lesson: 7, kana: "たべもの", kanji: "食べ物", romaji: "tabemono", en: ["food"] },
-      { lesson: 7, kana: "すむ", kanji: "住む", romaji: "sumu", en: ["to live", "reside"] },
-      { lesson: 7, kana: "まつ", kanji: "待つ", romaji: "matsu", en: ["to wait", "wait"] },
-      { lesson: 7, kana: "ねる", kanji: "寝る", romaji: "neru", en: ["to sleep", "sleep", "go to bed"] },
-      { lesson: 7, kana: "えいご", kanji: "英語", romaji: "eigo", en: ["English", "english language"] },
-
-      // Lesson 8
-      { lesson: 8, kana: "でんわ", kanji: "電話", romaji: "denwa", en: ["phone", "telephone"] },
-      { lesson: 8, kana: "いそがしい", kanji: "忙しい", romaji: "isogashii", en: ["busy"] },
-      { lesson: 8, kana: "たのしい", kanji: "楽しい", romaji: "tanoshii", en: ["fun", "enjoyable"] },
-      { lesson: 8, kana: "おもしろい", kanji: "面白い", romaji: "omoshiroi", en: ["interesting", "funny"] },
-      { lesson: 8, kana: "むずかしい", kanji: "難しい", romaji: "muzukashii", en: ["difficult", "hard"] },
-      { lesson: 8, kana: "やさしい", kanji: "易しい", romaji: "yasashii", en: ["easy", "simple"] },
-      { lesson: 8, kana: "ちいさい", kanji: "小さい", romaji: "chiisai", en: ["small", "little"] },
-      { lesson: 8, kana: "たかい", kanji: "高い", romaji: "takai", en: ["expensive", "high", "tall"] },
-      { lesson: 8, kana: "やすい", kanji: "安い", romaji: "yasui", en: ["cheap", "inexpensive"] },
-      { lesson: 8, kana: "あたらしい", kanji: "新しい", romaji: "atarashii", en: ["new"] },
-      { lesson: 8, kana: "ふるい", kanji: "古い", romaji: "furui", en: ["old"] },
-      { lesson: 8, kana: "いい", kanji: "良い", romaji: "ii", en: ["good"] },
-      { lesson: 8, kana: "わるい", kanji: "悪い", romaji: "warui", en: ["bad"] },
-      { lesson: 8, kana: "しろい", kanji: "白い", romaji: "shiroi", en: ["white"] },
-      { lesson: 8, kana: "くろい", kanji: "黒い", romaji: "kuroi", en: ["black"] },
-      { lesson: 8, kana: "あかい", kanji: "赤い", romaji: "akai", en: ["red"] },
-      { lesson: 8, kana: "あおい", kanji: "青い", romaji: "aoi", en: ["blue"] },
-      { lesson: 8, kana: "ちかい", kanji: "近い", romaji: "chikai", en: ["near", "close"] },
-      { lesson: 8, kana: "とおい", kanji: "遠い", romaji: "tooi", en: ["far", "distant"] },
-      { lesson: 8, kana: "てんき", kanji: "天気", romaji: "tenki", en: ["weather"] },
-
-      // Lesson 9
-      { lesson: 9, kana: "ゆうめい", kanji: "有名", romaji: "yuumei", en: ["famous"] },
-      { lesson: 9, kana: "しずか", kanji: "静か", romaji: "shizuka", en: ["quiet"] },
-      { lesson: 9, kana: "にぎやか", kanji: "賑やか", romaji: "nigiyaka", en: ["lively", "busy", "bustling"] },
-      { lesson: 9, kana: "べんり", kanji: "便利", romaji: "benri", en: ["convenient"] },
-      { lesson: 9, kana: "ふべん", kanji: "不便", romaji: "fuben", en: ["inconvenient"] },
-      { lesson: 9, kana: "たいへん", kanji: "大変", romaji: "taihen", en: ["tough", "hard", "difficult"] },
-      { lesson: 9, kana: "みち", kanji: "道", romaji: "michi", en: ["road", "street", "way"] },
-      { lesson: 9, kana: "まち", kanji: "町", romaji: "machi", en: ["town", "city"] },
-      { lesson: 9, kana: "にく", kanji: "肉", romaji: "niku", en: ["meat"] },
-      { lesson: 9, kana: "やさい", kanji: "野菜", romaji: "yasai", en: ["vegetable", "vegetables"] },
-      { lesson: 9, kana: "えん", kanji: "円", romaji: "en", en: ["yen"] },
-      { lesson: 9, kana: "ところ", kanji: "所", romaji: "tokoro", en: ["place"] },
-      { lesson: 9, kana: "かえる", kanji: "帰る", romaji: "kaeru", en: ["to return", "go home", "return"] },
-      { lesson: 9, kana: "おきる", kanji: "起きる", romaji: "okiru", en: ["to get up", "wake up"] },
-
-      // Lesson 10
-      { lesson: 10, kana: "まんが", kanji: "漫画", romaji: "manga", en: ["comic book", "manga", "comic"] },
-      { lesson: 10, kana: "くだもの", kanji: "果物", romaji: "kudamono", en: ["fruit"] },
-      { lesson: 10, kana: "さかな", kanji: "魚", romaji: "sakana", en: ["fish"] },
-      { lesson: 10, kana: "おんがく", kanji: "音楽", romaji: "ongaku", en: ["music"] },
-      { lesson: 10, kana: "かね", kanji: "金", romaji: "kane", en: ["money"] },
-      { lesson: 10, kana: "きっぷ", kanji: "切符", romaji: "kippu", en: ["ticket"] },
-      { lesson: 10, kana: "おとこ", kanji: "男", romaji: "otoko", en: ["man", "male"] },
-      { lesson: 10, kana: "おんな", kanji: "女", romaji: "onna", en: ["woman", "female"] },
-      { lesson: 10, kana: "すき", kanji: "好き", romaji: "suki", en: ["like", "fond of"] },
-      { lesson: 10, kana: "きらい", kanji: "嫌い", romaji: "kirai", en: ["hate", "dislike"] },
-      { lesson: 10, kana: "じょうず", kanji: "上手", romaji: "joozu", en: ["good at", "skillful"] },
-      { lesson: 10, kana: "へた", kanji: "下手", romaji: "heta", en: ["bad at", "unskillful", "poor at"] },
-      { lesson: 10, kana: "わかる", kanji: "分かる", romaji: "wakaru", en: ["to understand", "understand"] },
-
-      // Lesson 11
-      { lesson: 11, kana: "にもつ", kanji: "荷物", romaji: "nimotsu", en: ["luggage", "baggage", "package"] },
-      { lesson: 11, kana: "かいもの", kanji: "買い物", romaji: "kaimono", en: ["shopping"] },
-      { lesson: 11, kana: "あらう", kanji: "洗う", romaji: "arau", en: ["to wash", "wash"] },
-      { lesson: 11, kana: "くうこう", kanji: "空港", romaji: "kuukoo", en: ["airport"] },
-      { lesson: 11, kana: "つくる", kanji: "作る", romaji: "tsukuru", en: ["to make", "make", "create"] },
-      { lesson: 11, kana: "すわる", kanji: "座る", romaji: "suwaru", en: ["to sit", "sit down"] },
-      { lesson: 11, kana: "おくる", kanji: "送る", romaji: "okuru", en: ["to send", "send"] },
-      { lesson: 11, kana: "きく", kanji: "聞く", romaji: "kiku", en: ["to hear", "listen", "ask"] },
-      { lesson: 11, kana: "しゅくだい", kanji: "宿題", romaji: "shukudai", en: ["homework"] },
-      { lesson: 11, kana: "はる", kanji: "春", romaji: "haru", en: ["spring"] },
-      { lesson: 11, kana: "なつ", kanji: "夏", romaji: "natsu", en: ["summer"] },
-      { lesson: 11, kana: "あき", kanji: "秋", romaji: "aki", en: ["autumn", "fall"] },
-      { lesson: 11, kana: "ふゆ", kanji: "冬", romaji: "fuyu", en: ["winter"] },
-      { lesson: 11, kana: "て", kanji: "手", romaji: "te", en: ["hand"] },
-      { lesson: 11, kana: "かお", kanji: "顔", romaji: "kao", en: ["face"] },
-      { lesson: 11, kana: "ふく", kanji: "服", romaji: "fuku", en: ["clothes", "clothing"] },
-      { lesson: 11, kana: "てがみ", kanji: "手紙", romaji: "tegami", en: ["letter"] },
-
-      // Lesson 12
-      { lesson: 12, kana: "あめ", kanji: "雨", romaji: "ame", en: ["rain"] },
-      { lesson: 12, kana: "ゆき", kanji: "雪", romaji: "yuki", en: ["snow"] },
-      { lesson: 12, kana: "かぜ", kanji: "風", romaji: "kaze", en: ["wind"] },
-      { lesson: 12, kana: "じしょ", kanji: "辞書", romaji: "jisho", en: ["dictionary"] },
-      { lesson: 12, kana: "やま", kanji: "山", romaji: "yama", en: ["mountain"] },
-      { lesson: 12, kana: "のぼる", kanji: "登る", romaji: "noboru", en: ["to climb", "climb"] },
-      { lesson: 12, kana: "しらべる", kanji: "調べる", romaji: "shiraberu", en: ["to check", "investigate", "search"] },
-
-      // Lesson 13
-      { lesson: 13, kana: "くつ", kanji: "靴", romaji: "kutsu", en: ["shoes"] },
-      { lesson: 13, kana: "ぼうし", kanji: "帽子", romaji: "booshi", en: ["hat", "cap"] },
-      { lesson: 13, kana: "パン", kanji: "", romaji: "pan", en: ["bread"] },
-      { lesson: 13, kana: "おもう", kanji: "思う", romaji: "omou", en: ["to think", "think"] },
-      { lesson: 13, kana: "いう", kanji: "言う", romaji: "iu", en: ["to say", "say"] },
-      { lesson: 13, kana: "きる", kanji: "着る", romaji: "kiru", en: ["to wear", "wear", "put on"] },
-      { lesson: 13, kana: "ほしい", kanji: "欲しい", romaji: "hoshii", en: ["to want", "want", "wanted"] },
-      { lesson: 13, kana: "こども", kanji: "子供", romaji: "kodomo", en: ["child", "children"] },
-
-      // Lesson 14
-      { lesson: 14, kana: "はなす", kanji: "話す", romaji: "hanasu", en: ["to speak", "to talk", "speak", "talk"] },
-      { lesson: 14, kana: "しつもん", kanji: "質問", romaji: "shitsumon", en: ["question"] },
-      { lesson: 14, kana: "もんだい", kanji: "問題", romaji: "mondai", en: ["problem", "question"] },
-      { lesson: 14, kana: "こたえる", kanji: "答える", romaji: "kotaeru", en: ["to answer", "answer"] },
-      { lesson: 14, kana: "たつ", kanji: "立つ", romaji: "tatsu", en: ["to stand", "stand"] },
-      { lesson: 14, kana: "おぼえる", kanji: "覚える", romaji: "oboeru", en: ["to remember", "remember", "memorize"] },
-      { lesson: 14, kana: "わすれる", kanji: "忘れる", romaji: "wasureru", en: ["to forget", "forget"] },
-      { lesson: 14, kana: "つかう", kanji: "使う", romaji: "tsukau", en: ["to use", "use"] },
-
-      // Lesson 15
-      { lesson: 15, kana: "しけん", kanji: "試験", romaji: "shiken", en: ["exam", "examination", "test"] },
-      { lesson: 15, kana: "りょうしん", kanji: "両親", romaji: "ryooshin", en: ["parents"] },
-      { lesson: 15, kana: "がんばる", kanji: "頑張る", romaji: "gambaru", en: ["to do one's best", "persevere", "try hard"] },
-      { lesson: 15, kana: "からだ", kanji: "体", romaji: "karada", en: ["body"] },
-      { lesson: 15, kana: "あたま", kanji: "頭", romaji: "atama", en: ["head"] },
-      { lesson: 15, kana: "め", kanji: "目", romaji: "me", en: ["eye", "eyes"] },
-      { lesson: 15, kana: "みみ", kanji: "耳", romaji: "mimi", en: ["ear", "ears"] },
-      { lesson: 15, kana: "くち", kanji: "口", romaji: "kuchi", en: ["mouth"] },
-      { lesson: 15, kana: "くすり", kanji: "薬", romaji: "kusuri", en: ["medicine"] },
-      { lesson: 15, kana: "どうぶつ", kanji: "動物", romaji: "doobutsu", en: ["animal"] },
-      { lesson: 15, kana: "うみ", kanji: "海", romaji: "umi", en: ["sea", "ocean"] },
-      { lesson: 15, kana: "そら", kanji: "空", romaji: "sora", en: ["sky"] },
-      { lesson: 15, kana: "できる", kanji: "出来る", romaji: "dekiru", en: ["can do", "can", "be able to"] },
-      { lesson: 15, kana: "ながい", kanji: "長い", romaji: "nagai", en: ["long"] },
-      { lesson: 15, kana: "みじかい", kanji: "短い", romaji: "mijikai", en: ["short"] }
-    ];
-
-    // APPLICATION STATE
-    const state = {
-      activeLessons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-      promptMode: 'kanji-en', // 'kanji-en', 'kana-en', 'romaji-en', 'en-romaji', 'mixed'
-      deck: [],
-      currentIndex: 0,
-      isFlipped: false,
-      autoSpeak: true,
-      autoListen: false,
-      recognitionActive: false,
-      stats: {
-        total: 0,
-        correct: 0,
-        missed: 0,
-        currentStreak: 0,
-      },
-      missedCards: []
-    };
-
-    // SPEECH SYNTHESIS ENGINE
-    function speakText(text, lang = 'ja-JP') {
-      if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      utterance.rate = 0.92;
-      window.speechSynthesis.speak(utterance);
-    }
-
-    // SPEECH RECOGNITION (WEBKIT / W3C)
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognizer = null;
-
-    if (SpeechRecognition) {
-      recognizer = new SpeechRecognition();
-      recognizer.continuous = false;
-      recognizer.interimResults = false;
-      recognizer.maxAlternatives = 3;
-
-      recognizer.onstart = () => {
-        state.recognitionActive = true;
-        updateMicUI(true, "Listening now... speak clearly");
-      };
-
-      recognizer.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        document.getElementById('user-input').value = transcript;
-        evaluateAnswer(transcript);
-      };
-
-      recognizer.onerror = (event) => {
-        state.recognitionActive = false;
-        updateMicUI(false, `Mic: ${event.error || 'could not capture'}`);
-      };
-
-      recognizer.onend = () => {
-        state.recognitionActive = false;
-        updateMicUI(false, "Tap mic to speak");
-      };
-    }
-
-    function toggleListening() {
-      if (!recognizer) {
-        showFeedback("Speech Recognition is not supported on this browser. Try Chrome or Safari.", false);
-        return;
-      }
-
-      if (state.recognitionActive) {
-        recognizer.stop();
-      } else {
-        const currentCard = state.deck[state.currentIndex];
-        const effectiveMode = getEffectiveMode(currentCard);
-
-        // Configure speech language
-        if (effectiveMode === 'en-romaji') {
-          // Expecting Japanese / Romaji response
-          recognizer.lang = 'ja-JP';
-        } else {
-          // Expecting English
-          recognizer.lang = 'en-US';
-        }
-
-        try {
-          recognizer.start();
-        } catch (e) {
-          console.warn(e);
-        }
-      }
-    }
-
-    function updateMicUI(isActive, message) {
-      const micBtn = document.getElementById('mic-btn');
-      const micStatus = document.getElementById('mic-status');
-      if (isActive) {
-        micBtn.classList.add('bg-rose-500', 'text-white', 'mic-recording');
-        micBtn.classList.remove('bg-slate-100', 'dark:bg-slate-800');
-      } else {
-        micBtn.classList.remove('bg-rose-500', 'text-white', 'mic-recording');
-        micBtn.classList.add('bg-slate-100', 'dark:bg-slate-800');
-      }
-      micStatus.textContent = message;
-    }
-
-    // ROMAJI & STRING NORMALIZATION
-    function normalizeRomaji(str) {
-      return (str || '')
-        .toLowerCase()
-        .trim()
-        .replace(/[ōō]/g, 'oo')
-        .replace(/[ūū]/g, 'uu')
-        .replace(/ou/g, 'oo') // Gakkoo vs Gakkou
-        .replace(/ee/g, 'ei') // Sensee vs Sensei
-        .replace(/shi/g, 'si')
-        .replace(/chi/g, 'ti')
-        .replace(/tsu/g, 'tu')
-        .replace(/fu/g, 'hu')
-        .replace(/[^a-z0-9]/g, '');
-    }
-
-    function normalizeEnglish(str) {
-      return (str || '')
-        .toLowerCase()
-        .trim()
-        .replace(/^to\s+/, '') // ignore leading "to" for verbs
-        .replace(/^(a|an|the)\s+/, '')
-        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-        .replace(/\s{2,}/g, " ");
-    }
-
-    function getEffectiveMode(card) {
-      if (state.promptMode === 'mixed') {
-        // Random prompt mode picking
-        const modes = ['kanji-en', 'kana-en', 'romaji-en', 'en-romaji'];
-        if (!card.kanji) return 'kana-en';
-        return modes[Math.floor(Math.random() * modes.length)];
-      }
-      // If Kanji mode requested but card has no Kanji (e.g., loanwords or particles)
-      if (state.promptMode === 'kanji-en' && !card.kanji) {
-        return 'kana-en';
-      }
-      return state.promptMode;
-    }
-
-    // DECK SHUFFLE & FILTERING
-    function buildDeck() {
-      let filtered = N5_VOCAB_DB.filter(item => state.activeLessons.includes(item.lesson));
-      if (filtered.length === 0) {
-        filtered = N5_VOCAB_DB.slice(0, 15); // Fallback to L1
-      }
-      // Shuffle Fisher-Yates
-      for (let i = filtered.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
-      }
-      state.deck = filtered;
-      state.currentIndex = 0;
-      state.stats.total = 0;
-      state.stats.correct = 0;
-      state.stats.missed = 0;
-      state.stats.currentStreak = 0;
-      state.missedCards = [];
-      updateStatsUI();
-      renderCurrentCard();
-    }
-
-    function flipCard(forceState) {
-      const cardEl = document.getElementById('flashcard');
-      state.isFlipped = typeof forceState === 'boolean' ? forceState : !state.isFlipped;
-      if (state.isFlipped) {
-        cardEl.classList.add('rotate-y-180');
-        if (state.autoSpeak) {
-          const current = state.deck[state.currentIndex];
-          speakText(current.kana || current.romaji, 'ja-JP');
-        }
-      } else {
-        cardEl.classList.remove('rotate-y-180');
-      }
-    }
-
-    function renderCurrentCard() {
-      if (state.deck.length === 0) return;
-      const card = state.deck[state.currentIndex];
-      const effMode = getEffectiveMode(card);
-
-      // Reset flip
-      flipCard(false);
-      document.getElementById('user-input').value = '';
-
-      // Update counters
-      document.getElementById('card-counter').textContent = `${state.currentIndex + 1} / ${state.deck.length}`;
-      const progressPercent = ((state.currentIndex + 1) / state.deck.length) * 100;
-      document.getElementById('session-progress').style.width = `${progressPercent}%`;
-
-      document.getElementById('lesson-label-badge').textContent = `Lesson ${card.lesson}`;
-
-      // Populate Prompt Side
-      const promptMain = document.getElementById('card-prompt-main');
-      const promptSub = document.getElementById('card-prompt-sub');
-      const targetHint = document.getElementById('target-lang-hint');
-      const promptTypeName = document.getElementById('prompt-type-name');
-
-      if (effMode === 'kanji-en') {
-        promptTypeName.textContent = 'Kanji';
-        promptMain.textContent = card.kanji || card.kana;
-        promptSub.textContent = '';
-        targetHint.textContent = 'English';
-      } else if (effMode === 'kana-en') {
-        promptTypeName.textContent = 'Kana / Furigana';
-        promptMain.textContent = card.kana;
-        promptSub.textContent = '';
-        targetHint.textContent = 'English';
-      } else if (effMode === 'romaji-en') {
-        promptTypeName.textContent = 'Romaji';
-        promptMain.textContent = card.romaji;
-        promptSub.textContent = '';
-        targetHint.textContent = 'English';
-      } else if (effMode === 'en-romaji') {
-        promptTypeName.textContent = 'English';
-        promptMain.textContent = card.en[0];
-        promptSub.textContent = card.en[1] ? `(also: ${card.en.slice(1).join(', ')})` : '';
-        targetHint.textContent = 'Romaji / Spoken Japanese';
-      }
-
-      // Populate Back Side
-      document.getElementById('back-furigana').textContent = card.kana;
-      document.getElementById('back-kanji').textContent = card.kanji || card.kana;
-      document.getElementById('back-romaji').textContent = card.romaji;
-      document.getElementById('back-english').textContent = card.en.join(' / ');
-      document.getElementById('card-lesson-tag').textContent = `Lesson ${card.lesson}`;
-
-      // Auto pronounce Japanese prompt if Kanji/Kana/Romaji mode
-      if (state.autoSpeak && effMode !== 'en-romaji') {
-        speakText(card.kana, 'ja-JP');
-      }
-
-      // Continuous auto listening if enabled
-      if (state.autoListen && SpeechRecognition) {
-        setTimeout(() => {
-          if (!state.recognitionActive) toggleListening();
-        }, 300);
-      }
-    }
-
-    // ANSWER VERIFICATION
-    function evaluateAnswer(rawInput) {
-      if (!rawInput || state.deck.length === 0) return;
-      const card = state.deck[state.currentIndex];
-      const effMode = getEffectiveMode(card);
-      let isCorrect = false;
-
-      if (effMode === 'en-romaji') {
-        const normInput = normalizeRomaji(rawInput);
-        const normTarget = normalizeRomaji(card.romaji);
-        const normKana = card.kana;
-        // Match romanized form or direct kana/kanji from Japanese voice recognizer
-        if (normInput === normTarget || rawInput.trim() === normKana || (card.kanji && rawInput.trim() === card.kanji)) {
-          isCorrect = true;
-        }
-      } else {
-        // Target is English
-        const cleanedUser = normalizeEnglish(rawInput);
-        isCorrect = card.en.some(expected => {
-          const cleanedExp = normalizeEnglish(expected);
-          return cleanedUser === cleanedExp || cleanedUser.includes(cleanedExp) || cleanedExp.includes(cleanedUser);
-        });
-      }
-
-      handleEvaluationResult(isCorrect, rawInput);
-    }
-
-    function handleEvaluationResult(isCorrect, submittedAnswer) {
-      if (isCorrect) {
-        showFeedback(`✓ Correct! "${submittedAnswer || 'Spot on'}"`, true);
-        markCard(true);
-      } else {
-        showFeedback(`✕ Not quite. Revealing answer...`, false);
-        flipCard(true);
-        markCard(false);
-      }
-    }
-
-    function markCard(isCorrect) {
-      const currentCard = state.deck[state.currentIndex];
-      state.stats.total++;
-
-      if (isCorrect) {
-        state.stats.correct++;
-        state.stats.currentStreak++;
-      } else {
-        state.stats.missed++;
-        state.stats.currentStreak = 0;
-        if (!state.missedCards.some(c => c.romaji === currentCard.romaji)) {
-          state.missedCards.push(currentCard);
-        }
-      }
-
-      updateStatsUI();
-
-      // Delay advancing to let user digest feedback
-      setTimeout(() => {
-        advanceNextCard();
-      }, isCorrect ? 900 : 2000);
-    }
-
-    function advanceNextCard() {
-      if (state.currentIndex < state.deck.length - 1) {
-        state.currentIndex++;
-        renderCurrentCard();
-      } else {
-        showSessionCompleted();
-      }
-    }
-
-    function showSessionCompleted() {
-      flipCard(false);
-      const promptMain = document.getElementById('card-prompt-main');
-      const promptSub = document.getElementById('card-prompt-sub');
-      promptMain.textContent = "お疲れ様でした!";
-      promptSub.textContent = `Completed! ${state.stats.correct} / ${state.stats.total} correct`;
-      showFeedback(`🎉 Session complete! Accuracy: ${Math.round((state.stats.correct / state.stats.total) * 100) || 0}%`, true);
-    }
-
-    function updateStatsUI() {
-      const accuracy = state.stats.total > 0 
-        ? Math.round((state.stats.correct / state.stats.total) * 100) 
-        : 100;
-
-      document.getElementById('top-accuracy').textContent = `${accuracy}% Acc`;
-      document.getElementById('top-streak').textContent = `🔥 ${state.stats.currentStreak} streak`;
-      document.getElementById('stat-count').textContent = state.stats.total;
-      document.getElementById('stat-correct').textContent = state.stats.correct;
-      document.getElementById('stat-missed').textContent = state.stats.missed;
-
-      const retryBtn = document.getElementById('retry-missed-btn');
-      const retryBadge = document.getElementById('retry-badge-count');
-      if (state.missedCards.length > 0) {
-        retryBtn.classList.remove('hidden');
-        retryBadge.textContent = state.missedCards.length;
-      } else {
-        retryBtn.classList.add('hidden');
-      }
-    }
-
-    function showFeedback(message, isSuccess) {
-      const bar = document.getElementById('feedback-bar');
-      const text = document.getElementById('feedback-text');
-      text.textContent = message;
-
-      bar.className = `h-10 my-2 flex items-center justify-center text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 opacity-100 ${
-        isSuccess 
-          ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
-          : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
-      }`;
-
-      setTimeout(() => {
-        bar.classList.add('opacity-0');
-      }, 2500);
-    }
-
-    // DRAWER & SETTINGS CONTROLLER
-    function initLessonGrid() {
-      const container = document.getElementById('lesson-checkbox-grid');
-      container.innerHTML = '';
-      for (let i = 1; i <= 15; i++) {
-        const isSelected = state.activeLessons.includes(i);
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.dataset.lesson = i;
-        btn.textContent = `L${i}`;
-        btn.className = `py-2 text-xs font-semibold rounded-xl border transition ${
-          isSelected 
-            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' 
-            : 'bg-slate-100 dark:bg-zen-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
-        }`;
-
-        btn.addEventListener('click', () => {
-          if (state.activeLessons.includes(i)) {
-            if (state.activeLessons.length > 1) {
-              state.activeLessons = state.activeLessons.filter(l => l !== i);
-              btn.className = 'py-2 text-xs font-semibold rounded-xl border transition bg-slate-100 dark:bg-zen-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800';
-            }
-          } else {
-            state.activeLessons.push(i);
-            state.activeLessons.sort((a,b) => a - b);
-            btn.className = 'py-2 text-xs font-semibold rounded-xl border transition bg-indigo-600 text-white border-indigo-600 shadow-sm';
-          }
-        });
-
-        container.appendChild(btn);
-      }
-    }
-
-    function toggleDrawer(open) {
-      const drawer = document.getElementById('settings-drawer');
-      const backdrop = document.getElementById('settings-backdrop');
-      if (open) {
-        drawer.classList.remove('translate-x-full');
-        backdrop.classList.remove('opacity-0', 'pointer-events-none');
-      } else {
-        drawer.classList.add('translate-x-full');
-        backdrop.classList.add('opacity-0', 'pointer-events-none');
-      }
-    }
-
-    // EVENT LISTENERS INITIALIZATION
-    window.onload = function() {
-      initLessonGrid();
-      buildDeck();
-
-      // Card flip on click
-      document.getElementById('flashcard-container').addEventListener('click', (e) => {
-        // avoid flip when clicking inner audio buttons
-        if (e.target.closest('#pronounce-prompt-btn') || e.target.closest('#pronounce-back-btn')) return;
-        flipCard();
-      });
-
-      // Pronounce Prompt
-      document.getElementById('pronounce-prompt-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        const current = state.deck[state.currentIndex];
-        const effMode = getEffectiveMode(current);
-        if (effMode === 'en-romaji') {
-          speakText(current.en[0], 'en-US');
-        } else {
-          speakText(current.kana, 'ja-JP');
-        }
-      });
-
-      // Pronounce Back Side
-      document.getElementById('pronounce-back-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        const current = state.deck[state.currentIndex];
-        speakText(current.kana, 'ja-JP');
-      });
-
-      // Form submission for answers
-      document.getElementById('answer-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const input = document.getElementById('user-input').value;
-        if (input.trim()) evaluateAnswer(input);
-      });
-
-      // Mic Button
-      document.getElementById('mic-btn').addEventListener('click', toggleListening);
-
-      // Rapid Action Buttons
-      document.getElementById('btn-flip').addEventListener('click', () => flipCard());
-      document.getElementById('btn-got-it').addEventListener('click', () => markCard(true));
-      document.getElementById('btn-missed').addEventListener('click', () => {
-        flipCard(true);
-        markCard(false);
-      });
-
-      // Settings Drawer Events
-      document.getElementById('open-settings-btn').addEventListener('click', () => toggleDrawer(true));
-      document.getElementById('close-settings-btn').addEventListener('click', () => toggleDrawer(false));
-      document.getElementById('settings-backdrop').addEventListener('click', () => toggleDrawer(false));
-
-      // Lesson filter buttons
-      document.getElementById('btn-select-all-lessons').addEventListener('click', () => {
-        state.activeLessons = Array.from({ length: 15 }, (_, i) => i + 1);
-        initLessonGrid();
-      });
-
-      document.getElementById('btn-clear-lessons').addEventListener('click', () => {
-        state.activeLessons = [1];
-        initLessonGrid();
-      });
-
-      // Prompt Mode Selector
-      document.querySelectorAll('input[name="promptMode"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-          state.promptMode = e.target.value;
-          document.getElementById('prompt-mode-badge').textContent = `Prompt: ${e.target.parentElement.textContent.trim()}`;
-        });
-      });
-
-      // Audio Options
-      document.getElementById('setting-auto-speak').addEventListener('change', (e) => {
-        state.autoSpeak = e.target.checked;
-        const iconOn = document.getElementById('audio-icon-on');
-        const iconOff = document.getElementById('audio-icon-off');
-        if (state.autoSpeak) {
-          iconOn.classList.remove('hidden');
-          iconOff.classList.add('hidden');
-        } else {
-          iconOn.classList.add('hidden');
-          iconOff.classList.remove('hidden');
-        }
-      });
-
-      document.getElementById('toggle-mute-btn').addEventListener('click', () => {
-        const toggle = document.getElementById('setting-auto-speak');
-        toggle.checked = !toggle.checked;
-        toggle.dispatchEvent(new Event('change'));
-      });
-
-      document.getElementById('setting-auto-listen').addEventListener('change', (e) => {
-        state.autoListen = e.target.checked;
-      });
-
-      // Restart / Apply Deck
-      document.getElementById('restart-deck-btn').addEventListener('click', () => {
-        toggleDrawer(false);
-        buildDeck();
-        showFeedback("Deck refreshed with your preferences!", true);
-      });
-
-      // Retry Missed Cards
-      document.getElementById('retry-missed-btn').addEventListener('click', () => {
-        if (state.missedCards.length === 0) return;
-        state.deck = [...state.missedCards];
-        state.missedCards = [];
-        state.currentIndex = 0;
-        state.stats.total = 0;
-        state.stats.correct = 0;
-        state.stats.missed = 0;
-        updateStatsUI();
-        renderCurrentCard();
-        showFeedback("Re-studying your missed cards!", true);
-      });
-
-      // Dark Mode Switcher
-      document.getElementById('theme-toggle-btn').addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-      });
-
-      // Keyboard Shortcuts (Space: flip, Right: Got it, Left: Missed)
-      window.addEventListener('keydown', (e) => {
-        // Ignore if user is typing in the input box
-        if (document.activeElement === document.getElementById('user-input')) {
-          return;
-        }
-        if (e.code === 'Space') {
-          e.preventDefault();
-          flipCard();
-        } else if (e.code === 'ArrowRight') {
-          e.preventDefault();
-          markCard(true);
-        } else if (e.code === 'ArrowLeft') {
-          e.preventDefault();
-          flipCard(true);
-          markCard(false);
-        }
-      });
-    };
+    // FULL VOCABULARY DATA (All 677 items from Lessons 1 to 15)
+    const VOCAB_DATA = [
+      // LESSON 1 (40)
+      { l: 1, k: "私", f: "わたし", r: "watashi", e: "I / me" },
+      { l: 1, k: "あなた", f: "あなた", r: "anata", e: "you" },
+      { l: 1, k: "〜さん", f: "〜さん", r: "san", e: "Mr. / Ms." },
+      { l: 1, k: "日本", f: "にほん", r: "nihon", e: "Japan" },
+      { l: 1, k: "中国", f: "ちゅうごく", r: "chuugoku", e: "China" },
+      { l: 1, k: "韓国", f: "かんこく", r: "kankoku", e: "Korea" },
+      { l: 1, k: "アメリカ", f: "アメリカ", r: "amerika", e: "USA / America" },
+      { l: 1, k: "インド", f: "インド", r: "indo", e: "India" },
+      { l: 1, k: "ドイツ", f: "ドイツ", r: "doitsu", e: "Germany" },
+      { l: 1, k: "大学", f: "だいがく", r: "daigaku", e: "university" },
+      { l: 1, k: "高校", f: "こうこう", r: "kookoo", e: "high school" },
+      { l: 1, k: "学校", f: "がっこう", r: "gakkoo", e: "school" },
+      { l: 1, k: "先生", f: "せんせい", r: "sensee", e: "teacher" },
+      { l: 1, k: "学生", f: "がくせい", r: "gakusee", e: "student" },
+      { l: 1, k: "名前", f: "なまえ", r: "namae", e: "name" },
+      { l: 1, k: "あの方", f: "あのかた", r: "anokata", e: "that person" },
+      { l: 1, k: "から", f: "から", r: "kara", e: "from" },
+      { l: 1, k: "来る", f: "くる", r: "kuru", e: "to come" },
+      { l: 1, k: "行く", f: "いく", r: "iku", e: "to go" },
+      { l: 1, k: "どなた", f: "どなた", r: "donata", e: "who (polite)" },
+      { l: 1, k: "友達", f: "ともだち", r: "tomodachi", e: "friend" },
+      { l: 1, k: "医者", f: "いしゃ", r: "isha", e: "doctor" },
+      { l: 1, k: "エンジニア", f: "エンジニア", r: "enjinia", e: "engineer" },
+      { l: 1, k: "会社員", f: "かいしゃいん", r: "kaishain", e: "company employee" },
+      { l: 1, k: "サラリーマン", f: "サラリーマン", r: "sarariiman", e: "office worker / company employee" },
+      { l: 1, k: "美味しい", f: "おいしい", r: "oishii", e: "delicious" },
+      { l: 1, k: "大きい", f: "おおきい", r: "ookii", e: "big / large" },
+      { l: 1, k: "国", f: "くに", r: "kuni", e: "country / nation" },
+      { l: 1, k: "〜語", f: "〜ご", r: "go", e: "language suffix" },
+      { l: 1, k: "〜人", f: "〜じん", r: "jin", e: "nationality suffix / people" },
+      { l: 1, k: "コーヒー", f: "コーヒー", r: "koohii", e: "coffee" },
+      { l: 1, k: "熱い", f: "あつい", r: "atsui", e: "hot (to touch / things)" },
+      { l: 1, k: "寒い", f: "さむい", r: "samui", e: "cold (weather)" },
+      { l: 1, k: "の", f: "の", r: "no", e: "possessive particle ('s / of)" },
+      { l: 1, k: "本", f: "ほん", r: "hon", e: "book" },
+      { l: 1, k: "車", f: "くるま", r: "kuruma", e: "car" },
+      { l: 1, k: "山田", f: "やまだ", r: "yamada", e: "Yamada" },
+      { l: 1, k: "佐藤", f: "さとう", r: "sato", e: "Sato" },
+      { l: 1, k: "鈴木", f: "すずき", r: "suzuki", e: "Suzuki" },
+      { l: 1, k: "教室", f: "きょうしつ", r: "kyooshitsu", e: "classroom" },
+
+      // LESSON 2 (46)
+      { l: 2, k: "いいえ", f: "いいえ", r: "iie", e: "no" },
+      { l: 2, k: "同じ", f: "おなじ", r: "onaji", e: "same" },
+      { l: 2, k: "会社", f: "かいしゃ", r: "kaisha", e: "company" },
+      { l: 2, k: "仕事", f: "しごと", r: "shigoto", e: "work / job" },
+      { l: 2, k: "資料", f: "しりょう", r: "shiryoo", e: "information / materials / documents" },
+      { l: 2, k: "雑誌", f: "ざっし", r: "zasshi", e: "magazine" },
+      { l: 2, k: "新聞", f: "しんぶん", r: "shimbun", e: "newspaper" },
+      { l: 2, k: "写真", f: "しゃしん", r: "shashin", e: "photograph / photo" },
+      { l: 2, k: "傘", f: "かさ", r: "kasa", e: "umbrella" },
+      { l: 2, k: "鞄", f: "かばん", r: "kaban", e: "bag" },
+      { l: 2, k: "明日", f: "あした", r: "ashita", e: "tomorrow" },
+      { l: 2, k: "ああ", f: "ああ", r: "aa", e: "Ah! / Oh!" },
+      { l: 2, k: "どうぞ", f: "どうぞ", r: "doozo", e: "please / here you are" },
+      { l: 2, k: "入る", f: "はいる", r: "hairu", e: "to enter" },
+      { l: 2, k: "お茶", f: "おちゃ", r: "ocha", e: "tea" },
+      { l: 2, k: "水", f: "みず", r: "mizu", e: "water" },
+      { l: 2, k: "紅茶", f: "こうちゃ", r: "koocha", e: "black tea" },
+      { l: 2, k: "ジュース", f: "ジュース", r: "juusu", e: "juice" },
+      { l: 2, k: "この", f: "この", r: "kono", e: "this (+ noun)" },
+      { l: 2, k: "その", f: "その", r: "sono", e: "that (+ noun)" },
+      { l: 2, k: "あの", f: "あの", r: "ano", e: "that (over there + noun)" },
+      { l: 2, k: "どの", f: "どの", r: "dono", e: "which (+ noun)" },
+      { l: 2, k: "これ", f: "これ", r: "kore", e: "this (one)" },
+      { l: 2, k: "それ", f: "それ", r: "sore", e: "that (one)" },
+      { l: 2, k: "あれ", f: "あれ", r: "are", e: "that one over there" },
+      { l: 2, k: "どれ", f: "どれ", r: "dore", e: "which one" },
+      { l: 2, k: "人", f: "ひと", r: "hito", e: "human / person / people" },
+      { l: 2, k: "母", f: "はは", r: "haha", e: "mother (my mother)" },
+      { l: 2, k: "お母さん", f: "おかあさん", r: "okaasan", e: "mother (someone else's)" },
+      { l: 2, k: "綺麗", f: "きれい", r: "kiree", e: "beautiful / clean" },
+      { l: 2, k: "弟", f: "おとうと", r: "otooto", e: "younger brother" },
+      { l: 2, k: "家族", f: "かぞく", r: "kazoku", e: "family" },
+      { l: 2, k: "何人", f: "なんにん", r: "nannin", e: "how many people" },
+      { l: 2, k: "兄", f: "あに", r: "ani", e: "elder brother (my)" },
+      { l: 2, k: "お兄さん", f: "おにいさん", r: "oniisan", e: "elder brother (someone else's)" },
+      { l: 2, k: "父", f: "ちち", r: "chichi", e: "father (my father)" },
+      { l: 2, k: "全部", f: "ぜんぶ", r: "zembu", e: "all / everything" },
+      { l: 2, k: "妻", f: "つま", r: "tsuma", e: "wife (my wife)" },
+      { l: 2, k: "奥さん", f: "おくさん", r: "okusan", e: "wife (someone else's)" },
+      { l: 2, k: "二人", f: "ふたり", r: "futari", e: "two people" },
+      { l: 2, k: "十", f: "じゅう", r: "juu", e: "ten" },
+      { l: 2, k: "百", f: "ひゃく", r: "hyaku", e: "hundred" },
+      { l: 2, k: "千", f: "せん", r: "sen", e: "thousand" },
+      { l: 2, k: "万", f: "まん", r: "man", e: "ten thousand" },
+      { l: 2, k: "と", f: "と", r: "to", e: "and / with" },
+      { l: 2, k: "誰", f: "だれ", r: "dare", e: "who" },
+
+      // LESSON 3 (52)
+      { l: 3, k: "海外", f: "かいがい", r: "kaigai", e: "overseas / abroad" },
+      { l: 3, k: "〜部", f: "〜ぶ", r: "bu", e: "department / section" },
+      { l: 3, k: "事務", f: "じむ", r: "jimu", e: "office work / clerical work" },
+      { l: 3, k: "手帳", f: "てちょう", r: "techoo", e: "pocket notebook" },
+      { l: 3, k: "ノート", f: "ノート", r: "nooto", e: "notebook" },
+      { l: 3, k: "名刺", f: "めいし", r: "meeshi", e: "business card" },
+      { l: 3, k: "万年筆", f: "まんねんひつ", r: "mannenhitsu", e: "fountain pen" },
+      { l: 3, k: "鉛筆", f: "えんぴつ", r: "empitsu", e: "pencil" },
+      { l: 3, k: "ボールペン", f: "ボールペン", r: "boorupen", e: "ballpoint pen" },
+      { l: 3, k: "パソコン", f: "パソコン", r: "pasokon", e: "personal computer" },
+      { l: 3, k: "コンピューター", f: "コンピューター", r: "kompyuutaa", e: "computer" },
+      { l: 3, k: "机", f: "つくえ", r: "tsukue", e: "desk" },
+      { l: 3, k: "椅子", f: "いす", r: "isu", e: "chair" },
+      { l: 3, k: "時計", f: "とけい", r: "tokei", e: "clock / watch" },
+      { l: 3, k: "絵", f: "え", r: "e", e: "picture / painting" },
+      { l: 3, k: "猫", f: "ねこ", r: "neko", e: "cat" },
+      { l: 3, k: "犬", f: "いぬ", r: "inu", e: "dog" },
+      { l: 3, k: "上", f: "うえ", r: "ue", e: "top / on / above" },
+      { l: 3, k: "下", f: "した", r: "shita", e: "under / below" },
+      { l: 3, k: "左", f: "ひだり", r: "hidari", e: "left" },
+      { l: 3, k: "右", f: "みぎ", r: "migi", e: "right" },
+      { l: 3, k: "隣", f: "となり", r: "tonari", e: "next to" },
+      { l: 3, k: "会議", f: "かいぎ", r: "kaigi", e: "meeting / conference" },
+      { l: 3, k: "会議室", f: "かいぎしつ", r: "kaigishitsu", e: "meeting room" },
+      { l: 3, k: "午前", f: "ごぜん", r: "gozen", e: "morning / AM" },
+      { l: 3, k: "午後", f: "ごご", r: "gogo", e: "afternoon / PM" },
+      { l: 3, k: "ここ", f: "ここ", r: "koko", e: "here" },
+      { l: 3, k: "そこ", f: "そこ", r: "soko", e: "there" },
+      { l: 3, k: "あそこ", f: "あそこ", r: "asoko", e: "over there" },
+      { l: 3, k: "どこ", f: "どこ", r: "doko", e: "where" },
+      { l: 3, k: "こちら", f: "こちら", r: "kochira", e: "this way / here (polite)" },
+      { l: 3, k: "そちら", f: "そちら", r: "sochira", e: "that way / there (polite)" },
+      { l: 3, k: "あちら", f: "あちら", r: "achira", e: "over there (polite)" },
+      { l: 3, k: "どちら", f: "どちら", r: "dochira", e: "which way / where (polite)" },
+      { l: 3, k: "ある", f: "ある", r: "aru", e: "there is / are (inanimate)" },
+      { l: 3, k: "食堂", f: "しょくどう", r: "shokudoo", e: "dining hall / cafeteria" },
+      { l: 3, k: "部屋", f: "へや", r: "heya", e: "room" },
+      { l: 3, k: "外", f: "そと", r: "soto", e: "outside" },
+      { l: 3, k: "中", f: "なか", r: "naka", e: "inside" },
+      { l: 3, k: "受付", f: "うけつけ", r: "uketsuke", e: "reception desk" },
+      { l: 3, k: "トイレ", f: "トイレ", r: "toire", e: "restroom / toilet" },
+      { l: 3, k: "お手洗い", f: "おてあらい", r: "otearai", e: "restroom / bathroom" },
+      { l: 3, k: "〜階", f: "〜かい", r: "kai", e: "floor counter" },
+      { l: 3, k: "階段", f: "かいだん", r: "kaidan", e: "stairs" },
+      { l: 3, k: "何階", f: "なんかい", r: "nankai", e: "which floor" },
+      { l: 3, k: "エレベーター", f: "エレベーター", r: "erebeetaa", e: "elevator" },
+      { l: 3, k: "〜枚", f: "〜まい", r: "mai", e: "counter for thin flat objects" },
+      { l: 3, k: "自動販売機", f: "じどうはんばいき", r: "jidoohambaiki", e: "vending machine" },
+      { l: 3, k: "課長", f: "かちょう", r: "kachoo", e: "section chief" },
+      { l: 3, k: "部長", f: "ぶちょう", r: "buchoo", e: "department manager" },
+      { l: 3, k: "社長", f: "しゃちょう", r: "shachoo", e: "company president" },
+      { l: 3, k: "億", f: "おく", r: "oku", e: "one hundred million" },
+
+      // LESSON 4 (64)
+      { l: 4, k: "〜年", f: "〜ねん", r: "nen", e: "~th year / year" },
+      { l: 4, k: "何年", f: "なんねん", r: "nannen", e: "what year" },
+      { l: 4, k: "今年", f: "ことし", r: "kotoshi", e: "this year" },
+      { l: 4, k: "来年", f: "らいねん", r: "rainen", e: "next year" },
+      { l: 4, k: "去年", f: "きょねん", r: "kyonen", e: "last year" },
+      { l: 4, k: "〜月", f: "〜がつ", r: "gatsu", e: "month of year" },
+      { l: 4, k: "何月", f: "なんがつ", r: "nangatsu", e: "what month" },
+      { l: 4, k: "今月", f: "こんげつ", r: "kongetsu", e: "this month" },
+      { l: 4, k: "来月", f: "らいげつ", r: "raigetsu", e: "next month" },
+      { l: 4, k: "先月", f: "せんげつ", r: "sengetsu", e: "last month" },
+      { l: 4, k: "週", f: "しゅう", r: "shuu", e: "week" },
+      { l: 4, k: "今週", f: "こんしゅう", r: "konshuu", e: "this week" },
+      { l: 4, k: "来週", f: "らいしゅう", r: "raishuu", e: "next week" },
+      { l: 4, k: "先週", f: "せんしゅう", r: "senshuu", e: "last week" },
+      { l: 4, k: "日", f: "ひ / にち", r: "hi / nichi", e: "day" },
+      { l: 4, k: "今日", f: "きょう", r: "kyoo", e: "today" },
+      { l: 4, k: "昨日", f: "きのう", r: "kinoo", e: "yesterday" },
+      { l: 4, k: "おととい", f: "おととい", r: "ototoi", e: "the day before yesterday" },
+      { l: 4, k: "あさって", f: "あさって", r: "asatte", e: "the day after tomorrow" },
+      { l: 4, k: "〜時", f: "〜じ", r: "ji", e: "o'clock" },
+      { l: 4, k: "何時", f: "なんじ", r: "nanji", e: "what time" },
+      { l: 4, k: "〜分", f: "〜ふん / ぷん", r: "fun", e: "minute counter" },
+      { l: 4, k: "何分", f: "なんぶん", r: "nambun", e: "what minute" },
+      { l: 4, k: "〜秒", f: "〜びょう", r: "byoo", e: "second counter" },
+      { l: 4, k: "いつ", f: "いつ", r: "itsu", e: "when" },
+      { l: 4, k: "半", f: "はん", r: "han", e: "half" },
+      { l: 4, k: "前", f: "まえ", r: "mae", e: "front / before" },
+      { l: 4, k: "後ろ", f: "うしろ", r: "ushiro", e: "back / behind" },
+      { l: 4, k: "今", f: "いま", r: "ima", e: "now" },
+      { l: 4, k: "朝", f: "あさ", r: "asa", e: "morning" },
+      { l: 4, k: "昼", f: "ひる", r: "hiru", e: "daytime / noon" },
+      { l: 4, k: "晩", f: "ばん", r: "ban", e: "evening" },
+      { l: 4, k: "夜", f: "よる", r: "yoru", e: "night" },
+      { l: 4, k: "今朝", f: "けさ", r: "kesa", e: "this morning" },
+      { l: 4, k: "今晩", f: "こんばん", r: "komban", e: "this evening / tonight" },
+      { l: 4, k: "休み", f: "やすみ", r: "yasumi", e: "rest / day off" },
+      { l: 4, k: "毎日", f: "まいにち", r: "mainichi", e: "every day" },
+      { l: 4, k: "毎〜", f: "まい〜", r: "mai", e: "every ~" },
+      { l: 4, k: "誕生日", f: "たんじょうび", r: "tanjoobi", e: "birthday" },
+      { l: 4, k: "パーティー", f: "パーティー", r: "paatii", e: "party" },
+      { l: 4, k: "デパート", f: "デパート", r: "depaato", e: "department store" },
+      { l: 4, k: "銀行", f: "ぎんこう", r: "ginkoo", e: "bank" },
+      { l: 4, k: "郵便局", f: "ゆうびんきょく", r: "yuubinkyoku", e: "post office" },
+      { l: 4, k: "図書館", f: "としょかん", r: "toshokan", e: "library" },
+      { l: 4, k: "映画館", f: "えいがかん", r: "eigakan", e: "movie theatre / cinema" },
+      { l: 4, k: "スーパー", f: "スーパー", r: "suupaa", e: "supermarket" },
+      { l: 4, k: "病院", f: "びょういん", r: "byooin", e: "hospital" },
+      { l: 4, k: "八百屋", f: "やおや", r: "yaoya", e: "vegetable shop / greengrocer" },
+      { l: 4, k: "美術館", f: "びじゅつかん", r: "bijutsukan", e: "art museum" },
+      { l: 4, k: "〜側", f: "〜がわ", r: "gawa", e: "~side" },
+      { l: 4, k: "月曜日", f: "げつようび", r: "getsuyoobi", e: "Monday" },
+      { l: 4, k: "火曜日", f: "かようび", r: "kayoobi", e: "Tuesday" },
+      { l: 4, k: "水曜日", f: "すいようび", r: "suiyoobi", e: "Wednesday" },
+      { l: 4, k: "木曜日", f: "もくようび", r: "mokuyoobi", e: "Thursday" },
+      { l: 4, k: "金曜日", f: "きんようび", r: "kinyoobi", e: "Friday" },
+      { l: 4, k: "土曜日", f: "どようび", r: "doyoobi", e: "Saturday" },
+      { l: 4, k: "日曜日", f: "にちようび", r: "nichiyoobi", e: "Sunday" },
+      { l: 4, k: "何曜日", f: "なんようび", r: "nanyoobi", e: "what day of the week" },
+      { l: 4, k: "祝日", f: "しゅくじつ", r: "shukujitsu", e: "holiday / national holiday" },
+      { l: 4, k: "週末", f: "しゅうまつ", r: "shuumatsu", e: "weekend" },
+      { l: 4, k: "プレゼント", f: "プレゼント", r: "purezento", e: "
