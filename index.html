@@ -411,7 +411,7 @@
     <button class="btn btn-next" id="btnNext">Next ➔</button>
   </div>
 
-  <script src="vocab.js"></script>
+ <script src="vocab.js"></script>
 
   <script>
     const N5_KANJI_SET = new Set([
@@ -458,8 +458,9 @@
     let isFlipped = false;
     let recognition = null;
     let isRecording = false;
+    let isSpeechStarting = false;
+    let listenRetryTimer = null;
 
-    // Session Memory (Card Key -> 'passed' | 'failed')
     const sessionHistory = new Map();
     let isReviewingFailures = false;
 
@@ -499,7 +500,6 @@
       const pct = totalAttempts === 0 ? 0 : Math.round((correctCount / totalAttempts) * 100);
       stats.textContent = `${correctCount} / ${totalAttempts} (${pct}%) • ${currentDeck.length ? currentIndex + 1 : 0}/${currentDeck.length}`;
 
-      // Update Failures Quick-Filter Button
       let failureCount = 0;
       sessionHistory.forEach((status) => {
         if (status === 'failed') failureCount++;
@@ -521,7 +521,10 @@
     }
 
     function initDeck() {
+      stopVoiceInput();
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+      if (listenRetryTimer) clearTimeout(listenRetryTimer);
+
       const data = window.VOCAB_DATA;
       if (!data || data.length === 0) {
         promptText.textContent = "vocab.js missing";
@@ -580,7 +583,10 @@
     }
 
     function loadCard() {
+      stopVoiceInput();
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+      if (listenRetryTimer) clearTimeout(listenRetryTimer);
+
       if (!currentDeck || currentDeck.length === 0) {
         promptLabel.textContent = "INFO";
         promptText.innerHTML = isReviewingFailures ? "No failed cards left!" : "No cards in filter";
@@ -599,7 +605,6 @@
       const card = currentDeck[currentIndex];
       activeCardMode = getActiveMode();
 
-      // Retrieve Green Tick / Red Cross State for this Card
       const currentStatus = sessionHistory.get(getCardKey(card)) || 'unseen';
       setBadgeVisual(cardStatusFront, currentStatus);
       setBadgeVisual(cardStatusBack, currentStatus);
@@ -628,12 +633,12 @@
       lessonTag.textContent = "L" + card.l;
       updateStatsHeader();
 
-      // Ensure audio prompt finishes before mic listens
+      // Handshake: If speaking, mic starts only after speech utterance completes
       if (toggleAutoSpeak && toggleAutoSpeak.checked) {
         if (activeCardMode !== 'n5reading') {
           triggerAudioPrompt(() => {
             if (toggleAutoListen && toggleAutoListen.checked) {
-              setTimeout(startVoiceInput, 300);
+              listenRetryTimer = setTimeout(startVoiceInput, 300);
             }
           });
           return;
@@ -641,7 +646,7 @@
       }
 
       if (toggleAutoListen && toggleAutoListen.checked) {
-        setTimeout(startVoiceInput, 350);
+        listenRetryTimer = setTimeout(startVoiceInput, 350);
       }
     }
 
@@ -666,7 +671,10 @@
     }
 
     function advanceNext() {
+      stopVoiceInput();
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+      if (listenRetryTimer) clearTimeout(listenRetryTimer);
+
       if (currentIndex < currentDeck.length - 1) {
         currentIndex++;
         loadCard();
@@ -725,6 +733,7 @@
       }
 
       if (isCorrect) {
+        stopVoiceInput(); // Stop mic immediately on success to prevent collision
         correctCount++;
         sessionHistory.set(cardKey, 'passed');
         setBadgeVisual(cardStatusFront, 'passed');
@@ -770,17 +779,30 @@
       }
     }
 
+    // Pipeline-controlled Voice Handling
+    function stopVoiceInput() {
+      if (!recognition) return;
+      isSpeechStarting = false;
+      try {
+        recognition.abort(); // Force-kill pending instances before transition
+      } catch (e) {}
+      micBtn.classList.remove('recording');
+      isRecording = false;
+    }
+
     function startVoiceInput() {
-      if (!recognition || isRecording) return;
+      if (!recognition || isRecording || isSpeechStarting) return;
+      isSpeechStarting = true;
+
       recognition.lang = (activeCardMode === 'n5reading' || activeCardMode === 'english') ? 'ja-JP' : 'en-US';
       try {
         recognition.start();
       } catch (err) {
-        try { recognition.stop(); } catch (e) {}
+        isSpeechStarting = false;
+        try { recognition.abort(); } catch (e) {}
       }
     }
 
-    // Direct Bindings
     if (cardWrap) cardWrap.onclick = flipCard;
     if (btnFlip) btnFlip.onclick = flipCard;
     if (btnSkip) btnSkip.onclick = skipCard;
@@ -819,6 +841,7 @@
 
       recognition.onstart = () => {
         isRecording = true;
+        isSpeechStarting = false;
         micBtn.classList.add('recording');
         statusMsg.textContent = "Listening...";
         statusMsg.className = "status-msg info";
@@ -833,6 +856,17 @@
       recognition.onerror = (e) => {
         micBtn.classList.remove('recording');
         isRecording = false;
+        isSpeechStarting = false;
+
+        // Gracefully handle aborted and no-speech events without alarming error text
+        if (e.error === 'aborted') {
+          // If auto-listen is active, schedule a clean, unhurried retry
+          if (toggleAutoListen && toggleAutoListen.checked && !isFlipped) {
+            listenRetryTimer = setTimeout(startVoiceInput, 400);
+          }
+          return;
+        }
+
         if (e.error !== 'no-speech') {
           statusMsg.textContent = "Voice error: " + (e.error || 'Mic disabled');
           statusMsg.className = "status-msg incorrect";
@@ -842,12 +876,13 @@
       recognition.onend = () => {
         micBtn.classList.remove('recording');
         isRecording = false;
+        isSpeechStarting = false;
       };
 
       micBtn.onclick = (e) => {
         e.stopPropagation();
         if (isRecording) {
-          recognition.stop();
+          stopVoiceInput();
         } else {
           startVoiceInput();
         }
@@ -856,5 +891,3 @@
 
     initDeck();
   </script>
-</body>
-</html>
