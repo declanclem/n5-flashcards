@@ -295,11 +295,10 @@
     </select>
 
     <select id="promptMode">
-      <option value="n5reading" selected>Kanji ➔ Reading (Romaji/Kana)</option>
-      <option value="n5kanji">N5 Kanji ➔ English Meaning</option>
-      <option value="kanji">All Kanji ➔ English Meaning</option>
-      <option value="kana">Furigana ➔ English</option>
-      <option value="english">English ➔ Romaji/Kana</option>
+      <option value="n5reading">Kanji ➔ Reading (153 N5 Kanji)</option>
+      <option value="kana">Furigana ➔ English (All 677)</option>
+      <option value="kanji">All Kanji/Kana ➔ English (677)</option>
+      <option value="english">English ➔ Japanese (677)</option>
       <option value="mixed">Mixed Drill</option>
     </select>
   </div>
@@ -347,7 +346,7 @@
       type="text" 
       id="userInput" 
       class="input-box" 
-      placeholder="Type or speak answer..." 
+      placeholder="Type answer or 'skip'..." 
       autocomplete="off" 
       autocorrect="off" 
       autocapitalize="off" 
@@ -366,7 +365,6 @@
   <script src="vocab.js"></script>
 
   <script>
-    // Standard Official JLPT N5 Kanji Set (103 characters)
     const N5_KANJI_SET = new Set([
       "一","二","三","四","五","六","七","八","九","十","百","千","万","円","年","日","月","火","水","木","金","土",
       "今","前","後","午","朝","昼","晩","夜","分","半","時","週","間","毎","先","来","去","何",
@@ -456,7 +454,7 @@
       const data = window.VOCAB_DATA;
       if (!data || data.length === 0) {
         promptText.textContent = "vocab.js missing";
-        statusMsg.textContent = "vocab.js not found in directory.";
+        statusMsg.textContent = "vocab.js not found.";
         return;
       }
 
@@ -468,7 +466,7 @@
       }
 
       const activeModeVal = promptMode ? promptMode.value : 'n5reading';
-      if (activeModeVal === 'n5kanji' || activeModeVal === 'n5reading') {
+      if (activeModeVal === 'n5reading') {
         filtered = filtered.filter(item => isStrictN5KanjiWord(item.k));
       }
 
@@ -483,7 +481,7 @@
     function getActiveMode() {
       const mode = promptMode ? promptMode.value : 'n5reading';
       if (mode === 'mixed') {
-        const modes = ['n5reading', 'n5kanji', 'kana', 'english'];
+        const modes = ['n5reading', 'kanji', 'kana', 'english'];
         return modes[Math.floor(Math.random() * modes.length)];
       }
       return mode;
@@ -495,7 +493,7 @@
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
       if (!currentDeck || currentDeck.length === 0) {
         promptLabel.textContent = "INFO";
-        promptText.innerHTML = "No cards match filter";
+        promptText.innerHTML = "No cards in filter";
         ansKana.textContent = "--";
         ansRomaji.textContent = "--";
         ansMeaning.textContent = "--";
@@ -514,15 +512,15 @@
       if (activeCardMode === 'n5reading') {
         promptLabel.textContent = "KANJI ➔ READING (ROMAJI/KANA)";
         promptText.innerHTML = formatPromptKanji(card.k || card.f);
-        userInput.placeholder = "Type/speak reading (e.g. " + card.r.split(' ')[0] + ")...";
-      } else if (activeCardMode === 'n5kanji' || activeCardMode === 'kanji') {
+        userInput.placeholder = "Type/speak reading...";
+      } else if (activeCardMode === 'kanji') {
         promptLabel.textContent = "KANJI ➔ ENGLISH MEANING";
         promptText.innerHTML = formatPromptKanji(card.k || card.f);
-        userInput.placeholder = "Type/speak English meaning...";
+        userInput.placeholder = "Type/speak English...";
       } else if (activeCardMode === 'kana') {
         promptLabel.textContent = "FURIGANA ➔ ENGLISH";
         promptText.textContent = card.f;
-        userInput.placeholder = "Type/speak English meaning...";
+        userInput.placeholder = "Type/speak English...";
       } else if (activeCardMode === 'english') {
         promptLabel.textContent = "ENGLISH ➔ JAPANESE";
         promptText.textContent = card.e.split('/')[0].trim();
@@ -535,10 +533,15 @@
       lessonTag.textContent = "L" + card.l;
       updateStatsHeader();
 
-      // For reading tests, speaking prompt gives the answer away, so auto-speak is skipped unless English
+      // Handshake: If auto-speaking, wait until speech finishes BEFORE engaging mic
       if (toggleAutoSpeak && toggleAutoSpeak.checked) {
         if (activeCardMode !== 'n5reading') {
-          triggerAudioPrompt();
+          triggerAudioPrompt(() => {
+            if (toggleAutoListen && toggleAutoListen.checked) {
+              setTimeout(startVoiceInput, 300);
+            }
+          });
+          return;
         }
       }
 
@@ -547,13 +550,13 @@
       }
     }
 
-    function triggerAudioPrompt() {
+    function triggerAudioPrompt(onDoneCallback) {
       if (!currentDeck.length) return;
       const card = currentDeck[currentIndex];
       if (activeCardMode === 'english') {
-        speakText(card.e.split('/')[0], 'en-US');
+        speakText(card.e.split('/')[0], 'en-US', onDoneCallback);
       } else {
-        speakText(card.f, 'ja-JP');
+        speakText(card.f, 'ja-JP', onDoneCallback);
       }
     }
 
@@ -573,7 +576,7 @@
         currentIndex++;
         loadCard();
       } else {
-        statusMsg.textContent = "Deck complete! Reshuffling...";
+        statusMsg.textContent = "Deck finished! Reshuffling...";
         statusMsg.className = "status-msg info";
         setTimeout(initDeck, 1200);
       }
@@ -609,7 +612,6 @@
       const card = currentDeck[currentIndex];
       let isCorrect = false;
 
-      // Evaluation for Reading checks (Kanji -> Romaji / Kana OR English -> Japanese)
       if (activeCardMode === 'n5reading' || activeCardMode === 'english') {
         const cleanedRomaji = cleanStr(card.r);
         const altRomaji = cleanedRomaji.replace(/oo/g, 'ou').replace(/ee/g, 'ei');
@@ -622,7 +624,6 @@
           cleanInput.replace(/ou/g, 'oo') === cleanedRomaji
         );
       } else {
-        // Evaluation for English meaning
         const meanings = card.e.split(/[\/,]/).map(cleanStr);
         isCorrect = meanings.some(m => m === cleanInput || (m.length > 3 && cleanInput.includes(m)));
       }
@@ -645,20 +646,28 @@
       }
     }
 
-    function speakText(txt, lang) {
-      if (!('speechSynthesis' in window)) return;
+    function speakText(txt, lang, onEnd) {
+      if (!('speechSynthesis' in window)) {
+        if (onEnd) onEnd();
+        return;
+      }
       try {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(txt);
         u.lang = lang || 'ja-JP';
         u.rate = 0.9;
+        if (onEnd) {
+          u.onend = onEnd;
+          u.onerror = onEnd;
+        }
         window.speechSynthesis.speak(u);
-      } catch (err) {}
+      } catch (err) {
+        if (onEnd) onEnd();
+      }
     }
 
     function startVoiceInput() {
       if (!recognition || isRecording) return;
-      // If we are expecting Japanese reading, listen in ja-JP. If English meaning, en-US.
       recognition.lang = (activeCardMode === 'n5reading' || activeCardMode === 'english') ? 'ja-JP' : 'en-US';
       try {
         recognition.start();
