@@ -9,6 +9,7 @@
       --bg: #0f172a;
       --card-bg: #1e293b;
       --accent: #38bdf8;
+      --kanji-target: #f87171;
       --success: #22c55e;
       --danger: #ef4444;
       --text-main: #f8fafc;
@@ -20,7 +21,6 @@
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Meiryo", sans-serif;
@@ -31,58 +31,92 @@
       flex-direction: column;
       align-items: center;
       padding: 12px;
+      overflow-x: hidden;
+      width: 100%;
     }
     header {
       width: 100%;
-      max-width: 480px;
+      max-width: 440px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 0;
-      font-size: 0.9rem;
+      padding: 6px 0;
+      font-size: 0.85rem;
       color: var(--text-muted);
     }
     .badge {
       background: #334155;
-      padding: 4px 10px;
+      padding: 5px 10px;
       border-radius: 999px;
       color: var(--accent);
       font-weight: 600;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.02em;
     }
-    .controls-bar {
+
+    .controls-grid {
       width: 100%;
-      max-width: 480px;
-      display: flex;
+      max-width: 440px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     select {
-      flex: 1;
+      width: 100%;
+      min-width: 0;
       background: var(--card-bg);
       color: var(--text-main);
       border: 1px solid var(--border);
-      padding: 10px;
+      padding: 9px 8px;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       outline: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
     }
+
+    .toggle-bar {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      background: #172033;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+    }
+    .toggle-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .toggle-item input[type="checkbox"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
     .card-wrap {
       width: 100%;
-      max-width: 480px;
-      height: 250px;
+      max-width: 440px;
+      height: 240px;
       perspective: 1000px;
       cursor: pointer;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
     .card-inner {
       width: 100%;
       height: 100%;
       position: relative;
       transform-style: preserve-3d;
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     }
     .card-inner.flipped {
       transform: rotateY(180deg);
@@ -99,7 +133,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 18px;
+      padding: 16px;
     }
     .card-back {
       transform: rotateY(180deg);
@@ -110,7 +144,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
     }
     .prompt-text {
@@ -120,21 +154,26 @@
       letter-spacing: 0.05em;
       margin: auto 0;
       color: var(--text-main);
+      padding: 0 8px;
+    }
+    .n5-target-kanji {
+      color: var(--kanji-target);
+      font-weight: 800;
     }
     .answer-kana {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: var(--accent);
       font-weight: 600;
       text-align: center;
     }
     .answer-romaji {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       color: #cbd5e1;
       text-align: center;
       font-style: italic;
     }
     .answer-meaning {
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       color: #f1f5f9;
       font-weight: 600;
       text-align: center;
@@ -142,26 +181,27 @@
     }
     .tap-hint {
       text-align: center;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
     }
+
     .input-section {
       width: 100%;
-      max-width: 480px;
+      max-width: 440px;
       display: flex;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     .input-box {
       flex: 1;
+      min-width: 0;
       background: var(--card-bg);
       border: 1px solid var(--border);
       color: var(--text-main);
       padding: 12px 14px;
       border-radius: 10px;
-      font-size: 1rem;
+      font-size: 0.95rem;
       outline: none;
-      user-select: text;
     }
     .input-box:focus {
       border-color: var(--accent);
@@ -176,7 +216,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
     }
     .icon-btn.recording {
       background: #7f1d1d;
@@ -187,78 +227,92 @@
       from { transform: scale(1); }
       to { transform: scale(1.05); }
     }
-    .action-grid {
-      width: 100%;
-      max-width: 480px;
-      display: grid;
-      grid-template-columns: 1fr 1.2fr 1fr;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .btn {
-      padding: 14px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      color: #fff;
-    }
-    .btn-missed { background: #dc2626; }
-    .btn-flip { background: #3b82f6; }
-    .btn-gotit { background: #16a34a; }
-    .btn:active { opacity: 0.8; transform: translateY(1px); }
+
     .status-msg {
       width: 100%;
-      max-width: 480px;
+      max-width: 440px;
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
-      min-height: 24px;
+      min-height: 22px;
       margin-bottom: 8px;
     }
     .status-msg.correct { color: var(--success); }
     .status-msg.incorrect { color: var(--danger); }
     .status-msg.info { color: var(--accent); }
+
+    .action-grid {
+      width: 100%;
+      max-width: 440px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .btn {
+      padding: 12px 4px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+    .btn-skip { background: #475569; }
+    .btn-missed { background: #dc2626; }
+    .btn-flip { background: #3b82f6; }
+    .btn-gotit { background: #16a34a; }
+    .btn:active { opacity: 0.8; transform: translateY(1px); }
   </style>
 </head>
 <body>
   <header>
-    <span>JLPT N5 Core Vocab</span>
-    <span class="badge" id="stats">Card 1 of --</span>
+    <span>JLPT N5 Drill</span>
+    <span class="badge" id="stats">0 / 0 (0%)</span>
   </header>
 
-  <div class="controls-bar">
+  <div class="controls-grid">
     <select id="lessonFilter">
-      <option value="all">All Lessons (677 Words)</option>
-      <option value="1">Lesson 1: Greetings & Basics (40)</option>
-      <option value="2">Lesson 2: Items & Family (46)</option>
-      <option value="3">Lesson 3: Office & Positions (52)</option>
-      <option value="4">Lesson 4: Time & Calendar (64)</option>
-      <option value="5">Lesson 5: Travel, Food & Verbs (54)</option>
-      <option value="6">Lesson 6: Transit & Directions (54)</option>
-      <option value="7">Lesson 7: Work & Activities (44)</option>
-      <option value="8">Lesson 8: Adjectives & Weather (51)</option>
-      <option value="9">Lesson 9: Food & Dining (50)</option>
-      <option value="10">Lesson 10: Likes & Leisure (47)</option>
-      <option value="11">Lesson 11: Daily Verbs & Seasons (46)</option>
-      <option value="12">Lesson 12: Weather & Nature (45)</option>
-      <option value="13">Lesson 13: Shopping & Clothes (45)</option>
-      <option value="14">Lesson 14: Counters & Requests (52)</option>
-      <option value="15">Lesson 15: Health & Ability (47)</option>
+      <option value="all">All Lessons</option>
+      <option value="1">L1: Basics</option>
+      <option value="2">L2: Family & Items</option>
+      <option value="3">L3: Office & Rooms</option>
+      <option value="4">L4: Calendar & Time</option>
+      <option value="5">L5: Verbs & Dining</option>
+      <option value="6">L6: Transit & Spots</option>
+      <option value="7">L7: Jobs & Hobbies</option>
+      <option value="8">L8: Adjectives</option>
+      <option value="9">L9: Food & Places</option>
+      <option value="10">L10: Tastes & Likes</option>
+      <option value="11">L11: Daily Life</option>
+      <option value="12">L12: Weather & Nature</option>
+      <option value="13">L13: Clothes & Wants</option>
+      <option value="14">L14: Counters</option>
+      <option value="15">L15: Health & Ability</option>
     </select>
 
     <select id="promptMode">
-      <option value="kanji">Prompt: Kanji / Furigana</option>
-      <option value="kana">Prompt: Furigana / Kana</option>
-      <option value="romaji">Prompt: Romaji</option>
-      <option value="english">Prompt: English</option>
-      <option value="mixed">Prompt: Random Mix</option>
+      <option value="n5reading" selected>Kanji ➔ Reading (Romaji/Kana)</option>
+      <option value="n5kanji">N5 Kanji ➔ English Meaning</option>
+      <option value="kanji">All Kanji ➔ English Meaning</option>
+      <option value="kana">Furigana ➔ English</option>
+      <option value="english">English ➔ Romaji/Kana</option>
+      <option value="mixed">Mixed Drill</option>
     </select>
+  </div>
+
+  <div class="toggle-bar">
+    <label class="toggle-item">
+      <input type="checkbox" id="toggleAutoSpeak" />
+      <span>Auto-speak prompt</span>
+    </label>
+    <label class="toggle-item">
+      <input type="checkbox" id="toggleAutoListen" />
+      <span>Auto-listen (mic)</span>
+    </label>
   </div>
 
   <div class="card-wrap" id="cardWrap">
@@ -281,7 +335,7 @@
           <div class="answer-romaji" id="ansRomaji">--</div>
           <div class="answer-meaning" id="ansMeaning">--</div>
         </div>
-        <div class="tap-hint">Tap again to flip back</div>
+        <div class="tap-hint">Tap to flip back</div>
       </div>
     </div>
   </div>
@@ -293,7 +347,7 @@
       type="text" 
       id="userInput" 
       class="input-box" 
-      placeholder="Type answer & press Enter..." 
+      placeholder="Type or speak answer..." 
       autocomplete="off" 
       autocorrect="off" 
       autocapitalize="off" 
@@ -303,787 +357,64 @@
   </div>
 
   <div class="action-grid">
+    <button class="btn btn-skip" id="btnSkip">↷ Skip</button>
     <button class="btn btn-missed" id="btnMissed">✕ Missed</button>
     <button class="btn btn-flip" id="btnFlip">↻ Flip</button>
     <button class="btn btn-gotit" id="btnGotIt">✓ Got It</button>
   </div>
 
-<script>
-    // FULL VOCABULARY DATA (All 677 items from Lessons 1 to 15)
-    const VOCAB_DATA = [
-      // LESSON 1 (40)
-      { l: 1, k: "私", f: "わたし", r: "watashi", e: "I / me" },
-      { l: 1, k: "あなた", f: "あなた", r: "anata", e: "you" },
-      { l: 1, k: "〜さん", f: "〜さん", r: "san", e: "Mr. / Ms." },
-      { l: 1, k: "日本", f: "にほん", r: "nihon", e: "Japan" },
-      { l: 1, k: "中国", f: "ちゅうごく", r: "chuugoku", e: "China" },
-      { l: 1, k: "韓国", f: "かんこく", r: "kankoku", e: "Korea" },
-      { l: 1, k: "アメリカ", f: "アメリカ", r: "amerika", e: "USA / America" },
-      { l: 1, k: "インド", f: "インド", r: "indo", e: "India" },
-      { l: 1, k: "ドイツ", f: "ドイツ", r: "doitsu", e: "Germany" },
-      { l: 1, k: "大学", f: "だいがく", r: "daigaku", e: "university" },
-      { l: 1, k: "高校", f: "こうこう", r: "kookoo", e: "high school" },
-      { l: 1, k: "学校", f: "がっこう", r: "gakkoo", e: "school" },
-      { l: 1, k: "先生", f: "せんせい", r: "sensee", e: "teacher" },
-      { l: 1, k: "学生", f: "がくせい", r: "gakusee", e: "student" },
-      { l: 1, k: "名前", f: "なまえ", r: "namae", e: "name" },
-      { l: 1, k: "あの方", f: "あのかた", r: "anokata", e: "that person" },
-      { l: 1, k: "から", f: "から", r: "kara", e: "from" },
-      { l: 1, k: "来る", f: "くる", r: "kuru", e: "to come" },
-      { l: 1, k: "行く", f: "いく", r: "iku", e: "to go" },
-      { l: 1, k: "どなた", f: "どなた", r: "donata", e: "who (polite)" },
-      { l: 1, k: "友達", f: "ともだち", r: "tomodachi", e: "friend" },
-      { l: 1, k: "医者", f: "いしゃ", r: "isha", e: "doctor" },
-      { l: 1, k: "エンジニア", f: "エンジニア", r: "enjinia", e: "engineer" },
-      { l: 1, k: "会社員", f: "かいしゃいん", r: "kaishain", e: "company employee" },
-      { l: 1, k: "サラリーマン", f: "サラリーマン", r: "sarariiman", e: "office worker / company employee" },
-      { l: 1, k: "美味しい", f: "おいしい", r: "oishii", e: "delicious" },
-      { l: 1, k: "大きい", f: "おおきい", r: "ookii", e: "big / large" },
-      { l: 1, k: "国", f: "くに", r: "kuni", e: "country / nation" },
-      { l: 1, k: "〜語", f: "〜ご", r: "go", e: "language suffix" },
-      { l: 1, k: "〜人", f: "〜じん", r: "jin", e: "nationality suffix / people" },
-      { l: 1, k: "コーヒー", f: "コーヒー", r: "koohii", e: "coffee" },
-      { l: 1, k: "熱い", f: "あつい", r: "atsui", e: "hot (to touch / things)" },
-      { l: 1, k: "寒い", f: "さむい", r: "samui", e: "cold (weather)" },
-      { l: 1, k: "の", f: "の", r: "no", e: "possessive particle ('s / of)" },
-      { l: 1, k: "本", f: "ほん", r: "hon", e: "book" },
-      { l: 1, k: "車", f: "くるま", r: "kuruma", e: "car" },
-      { l: 1, k: "山田", f: "やまだ", r: "yamada", e: "Yamada" },
-      { l: 1, k: "佐藤", f: "さとう", r: "sato", e: "Sato" },
-      { l: 1, k: "鈴木", f: "すずき", r: "suzuki", e: "Suzuki" },
-      { l: 1, k: "教室", f: "きょうしつ", r: "kyooshitsu", e: "classroom" },
+  <script src="vocab.js"></script>
 
-      // LESSON 2 (46)
-      { l: 2, k: "いいえ", f: "いいえ", r: "iie", e: "no" },
-      { l: 2, k: "同じ", f: "おなじ", r: "onaji", e: "same" },
-      { l: 2, k: "会社", f: "かいしゃ", r: "kaisha", e: "company" },
-      { l: 2, k: "仕事", f: "しごと", r: "shigoto", e: "work / job" },
-      { l: 2, k: "資料", f: "しりょう", r: "shiryoo", e: "information / materials / documents" },
-      { l: 2, k: "雑誌", f: "ざっし", r: "zasshi", e: "magazine" },
-      { l: 2, k: "新聞", f: "しんぶん", r: "shimbun", e: "newspaper" },
-      { l: 2, k: "写真", f: "しゃしん", r: "shashin", e: "photograph / photo" },
-      { l: 2, k: "傘", f: "かさ", r: "kasa", e: "umbrella" },
-      { l: 2, k: "鞄", f: "かばん", r: "kaban", e: "bag" },
-      { l: 2, k: "明日", f: "あした", r: "ashita", e: "tomorrow" },
-      { l: 2, k: "ああ", f: "ああ", r: "aa", e: "Ah! / Oh!" },
-      { l: 2, k: "どうぞ", f: "どうぞ", r: "doozo", e: "please / here you are" },
-      { l: 2, k: "入る", f: "はいる", r: "hairu", e: "to enter" },
-      { l: 2, k: "お茶", f: "おちゃ", r: "ocha", e: "tea" },
-      { l: 2, k: "水", f: "みず", r: "mizu", e: "water" },
-      { l: 2, k: "紅茶", f: "こうちゃ", r: "koocha", e: "black tea" },
-      { l: 2, k: "ジュース", f: "ジュース", r: "juusu", e: "juice" },
-      { l: 2, k: "この", f: "この", r: "kono", e: "this (+ noun)" },
-      { l: 2, k: "その", f: "その", r: "sono", e: "that (+ noun)" },
-      { l: 2, k: "あの", f: "あの", r: "ano", e: "that (over there + noun)" },
-      { l: 2, k: "どの", f: "どの", r: "dono", e: "which (+ noun)" },
-      { l: 2, k: "これ", f: "これ", r: "kore", e: "this (one)" },
-      { l: 2, k: "それ", f: "それ", r: "sore", e: "that (one)" },
-      { l: 2, k: "あれ", f: "あれ", r: "are", e: "that one over there" },
-      { l: 2, k: "どれ", f: "どれ", r: "dore", e: "which one" },
-      { l: 2, k: "人", f: "ひと", r: "hito", e: "human / person / people" },
-      { l: 2, k: "母", f: "はは", r: "haha", e: "mother (my mother)" },
-      { l: 2, k: "お母さん", f: "おかあさん", r: "okaasan", e: "mother (someone else's)" },
-      { l: 2, k: "綺麗", f: "きれい", r: "kiree", e: "beautiful / clean" },
-      { l: 2, k: "弟", f: "おとうと", r: "otooto", e: "younger brother" },
-      { l: 2, k: "家族", f: "かぞく", r: "kazoku", e: "family" },
-      { l: 2, k: "何人", f: "なんにん", r: "nannin", e: "how many people" },
-      { l: 2, k: "兄", f: "あに", r: "ani", e: "elder brother (my)" },
-      { l: 2, k: "お兄さん", f: "おにいさん", r: "oniisan", e: "elder brother (someone else's)" },
-      { l: 2, k: "父", f: "ちち", r: "chichi", e: "father (my father)" },
-      { l: 2, k: "全部", f: "ぜんぶ", r: "zembu", e: "all / everything" },
-      { l: 2, k: "妻", f: "つま", r: "tsuma", e: "wife (my wife)" },
-      { l: 2, k: "奥さん", f: "おくさん", r: "okusan", e: "wife (someone else's)" },
-      { l: 2, k: "二人", f: "ふたり", r: "futari", e: "two people" },
-      { l: 2, k: "十", f: "じゅう", r: "juu", e: "ten" },
-      { l: 2, k: "百", f: "ひゃく", r: "hyaku", e: "hundred" },
-      { l: 2, k: "千", f: "せん", r: "sen", e: "thousand" },
-      { l: 2, k: "万", f: "まん", r: "man", e: "ten thousand" },
-      { l: 2, k: "と", f: "と", r: "to", e: "and / with" },
-      { l: 2, k: "誰", f: "だれ", r: "dare", e: "who" },
+  <script>
+    // Standard Official JLPT N5 Kanji Set (103 characters)
+    const N5_KANJI_SET = new Set([
+      "一","二","三","四","五","六","七","八","九","十","百","千","万","円","年","日","月","火","水","木","金","土",
+      "今","前","後","午","朝","昼","晩","夜","分","半","時","週","間","毎","先","来","去","何",
+      "上","下","左","右","東","西","南","北","中","外",
+      "駅","校","高","大","小","長","短","白","黒","赤","青","新","古","多","少","安","近","遠","広","早","明","暗","好",
+      "友","手","足","目","耳","口","体","人","子","女","男","父","母","兄","弟","姉","妹",
+      "見","聞","行","帰","食","飲","入","出","立","休","買","書","読","話","言",
+      "天","気","雨","電","車","名","国","社","店","道","山","川","花","魚","空"
+    ]);
 
-      // LESSON 3 (52)
-      { l: 3, k: "海外", f: "かいがい", r: "kaigai", e: "overseas / abroad" },
-      { l: 3, k: "〜部", f: "〜ぶ", r: "bu", e: "department / section" },
-      { l: 3, k: "事務", f: "じむ", r: "jimu", e: "office work / clerical work" },
-      { l: 3, k: "手帳", f: "てちょう", r: "techoo", e: "pocket notebook" },
-      { l: 3, k: "ノート", f: "ノート", r: "nooto", e: "notebook" },
-      { l: 3, k: "名刺", f: "めいし", r: "meeshi", e: "business card" },
-      { l: 3, k: "万年筆", f: "まんねんひつ", r: "mannenhitsu", e: "fountain pen" },
-      { l: 3, k: "鉛筆", f: "えんぴつ", r: "empitsu", e: "pencil" },
-      { l: 3, k: "ボールペン", f: "ボールペン", r: "boorupen", e: "ballpoint pen" },
-      { l: 3, k: "パソコン", f: "パソコン", r: "pasokon", e: "personal computer" },
-      { l: 3, k: "コンピューター", f: "コンピューター", r: "kompyuutaa", e: "computer" },
-      { l: 3, k: "机", f: "つくえ", r: "tsukue", e: "desk" },
-      { l: 3, k: "椅子", f: "いす", r: "isu", e: "chair" },
-      { l: 3, k: "時計", f: "とけい", r: "tokei", e: "clock / watch" },
-      { l: 3, k: "絵", f: "え", r: "e", e: "picture / painting" },
-      { l: 3, k: "猫", f: "ねこ", r: "neko", e: "cat" },
-      { l: 3, k: "犬", f: "いぬ", r: "inu", e: "dog" },
-      { l: 3, k: "上", f: "うえ", r: "ue", e: "top / on / above" },
-      { l: 3, k: "下", f: "した", r: "shita", e: "under / below" },
-      { l: 3, k: "左", f: "ひだり", r: "hidari", e: "left" },
-      { l: 3, k: "右", f: "みぎ", r: "migi", e: "right" },
-      { l: 3, k: "隣", f: "となり", r: "tonari", e: "next to" },
-      { l: 3, k: "会議", f: "かいぎ", r: "kaigi", e: "meeting / conference" },
-      { l: 3, k: "会議室", f: "かいぎしつ", r: "kaigishitsu", e: "meeting room" },
-      { l: 3, k: "午前", f: "ごぜん", r: "gozen", e: "morning / AM" },
-      { l: 3, k: "午後", f: "ごご", r: "gogo", e: "afternoon / PM" },
-      { l: 3, k: "ここ", f: "ここ", r: "koko", e: "here" },
-      { l: 3, k: "そこ", f: "そこ", r: "soko", e: "there" },
-      { l: 3, k: "あそこ", f: "あそこ", r: "asoko", e: "over there" },
-      { l: 3, k: "どこ", f: "どこ", r: "doko", e: "where" },
-      { l: 3, k: "こちら", f: "こちら", r: "kochira", e: "this way / here (polite)" },
-      { l: 3, k: "そちら", f: "そちら", r: "sochira", e: "that way / there (polite)" },
-      { l: 3, k: "あちら", f: "あちら", r: "achira", e: "over there (polite)" },
-      { l: 3, k: "どちら", f: "どちら", r: "dochira", e: "which way / where (polite)" },
-      { l: 3, k: "ある", f: "ある", r: "aru", e: "there is / are (inanimate)" },
-      { l: 3, k: "食堂", f: "しょくどう", r: "shokudoo", e: "dining hall / cafeteria" },
-      { l: 3, k: "部屋", f: "へや", r: "heya", e: "room" },
-      { l: 3, k: "外", f: "そと", r: "soto", e: "outside" },
-      { l: 3, k: "中", f: "なか", r: "naka", e: "inside" },
-      { l: 3, k: "受付", f: "うけつけ", r: "uketsuke", e: "reception desk" },
-      { l: 3, k: "トイレ", f: "トイレ", r: "toire", e: "restroom / toilet" },
-      { l: 3, k: "お手洗い", f: "おてあらい", r: "otearai", e: "restroom / bathroom" },
-      { l: 3, k: "〜階", f: "〜かい", r: "kai", e: "floor counter" },
-      { l: 3, k: "階段", f: "かいだん", r: "kaidan", e: "stairs" },
-      { l: 3, k: "何階", f: "なんかい", r: "nankai", e: "which floor" },
-      { l: 3, k: "エレベーター", f: "エレベーター", r: "erebeetaa", e: "elevator" },
-      { l: 3, k: "〜枚", f: "〜まい", r: "mai", e: "counter for thin flat objects" },
-      { l: 3, k: "自動販売機", f: "じどうはんばいき", r: "jidoohambaiki", e: "vending machine" },
-      { l: 3, k: "課長", f: "かちょう", r: "kachoo", e: "section chief" },
-      { l: 3, k: "部長", f: "ぶちょう", r: "buchoo", e: "department manager" },
-      { l: 3, k: "社長", f: "しゃちょう", r: "shachoo", e: "company president" },
-      { l: 3, k: "億", f: "おく", r: "oku", e: "one hundred million" },
+    function isKanjiChar(ch) {
+      return /[\u4e00-\u9faf]/.test(ch);
+    }
 
-      // LESSON 4 (64)
-      { l: 4, k: "〜年", f: "〜ねん", r: "nen", e: "~th year / year" },
-      { l: 4, k: "何年", f: "なんねん", r: "nannen", e: "what year" },
-      { l: 4, k: "今年", f: "ことし", r: "kotoshi", e: "this year" },
-      { l: 4, k: "来年", f: "らいねん", r: "rainen", e: "next year" },
-      { l: 4, k: "去年", f: "きょねん", r: "kyonen", e: "last year" },
-      { l: 4, k: "〜月", f: "〜がつ", r: "gatsu", e: "month of year" },
-      { l: 4, k: "何月", f: "なんがつ", r: "nangatsu", e: "what month" },
-      { l: 4, k: "今月", f: "こんげつ", r: "kongetsu", e: "this month" },
-      { l: 4, k: "来月", f: "らいげつ", r: "raigetsu", e: "next month" },
-      { l: 4, k: "先月", f: "せんげつ", r: "sengetsu", e: "last month" },
-      { l: 4, k: "週", f: "しゅう", r: "shuu", e: "week" },
-      { l: 4, k: "今週", f: "こんしゅう", r: "konshuu", e: "this week" },
-      { l: 4, k: "来週", f: "らいしゅう", r: "raishuu", e: "next week" },
-      { l: 4, k: "先週", f: "せんしゅう", r: "senshuu", e: "last week" },
-      { l: 4, k: "日", f: "ひ / にち", r: "hi / nichi", e: "day" },
-      { l: 4, k: "今日", f: "きょう", r: "kyoo", e: "today" },
-      { l: 4, k: "昨日", f: "きのう", r: "kinoo", e: "yesterday" },
-      { l: 4, k: "おととい", f: "おととい", r: "ototoi", e: "the day before yesterday" },
-      { l: 4, k: "あさって", f: "あさって", r: "asatte", e: "the day after tomorrow" },
-      { l: 4, k: "〜時", f: "〜じ", r: "ji", e: "o'clock" },
-      { l: 4, k: "何時", f: "なんじ", r: "nanji", e: "what time" },
-      { l: 4, k: "〜分", f: "〜ふん / ぷん", r: "fun", e: "minute counter" },
-      { l: 4, k: "何分", f: "なんぶん", r: "nambun", e: "what minute" },
-      { l: 4, k: "〜秒", f: "〜びょう", r: "byoo", e: "second counter" },
-      { l: 4, k: "いつ", f: "いつ", r: "itsu", e: "when" },
-      { l: 4, k: "半", f: "はん", r: "han", e: "half" },
-      { l: 4, k: "前", f: "まえ", r: "mae", e: "front / before" },
-      { l: 4, k: "後ろ", f: "うしろ", r: "ushiro", e: "back / behind" },
-      { l: 4, k: "今", f: "いま", r: "ima", e: "now" },
-      { l: 4, k: "朝", f: "あさ", r: "asa", e: "morning" },
-      { l: 4, k: "昼", f: "ひる", r: "hiru", e: "daytime / noon" },
-      { l: 4, k: "晩", f: "ばん", r: "ban", e: "evening" },
-      { l: 4, k: "夜", f: "よる", r: "yoru", e: "night" },
-      { l: 4, k: "今朝", f: "けさ", r: "kesa", e: "this morning" },
-      { l: 4, k: "今晩", f: "こんばん", r: "komban", e: "this evening / tonight" },
-      { l: 4, k: "休み", f: "やすみ", r: "yasumi", e: "rest / day off" },
-      { l: 4, k: "毎日", f: "まいにち", r: "mainichi", e: "every day" },
-      { l: 4, k: "毎〜", f: "まい〜", r: "mai", e: "every ~" },
-      { l: 4, k: "誕生日", f: "たんじょうび", r: "tanjoobi", e: "birthday" },
-      { l: 4, k: "パーティー", f: "パーティー", r: "paatii", e: "party" },
-      { l: 4, k: "デパート", f: "デパート", r: "depaato", e: "department store" },
-      { l: 4, k: "銀行", f: "ぎんこう", r: "ginkoo", e: "bank" },
-      { l: 4, k: "郵便局", f: "ゆうびんきょく", r: "yuubinkyoku", e: "post office" },
-      { l: 4, k: "図書館", f: "としょかん", r: "toshokan", e: "library" },
-      { l: 4, k: "映画館", f: "えいがかん", r: "eigakan", e: "movie theatre / cinema" },
-      { l: 4, k: "スーパー", f: "スーパー", r: "suupaa", e: "supermarket" },
-      { l: 4, k: "病院", f: "びょういん", r: "byooin", e: "hospital" },
-      { l: 4, k: "八百屋", f: "やおや", r: "yaoya", e: "vegetable shop / greengrocer" },
-      { l: 4, k: "美術館", f: "びじゅつかん", r: "bijutsukan", e: "art museum" },
-      { l: 4, k: "〜側", f: "〜がわ", r: "gawa", e: "~side" },
-      { l: 4, k: "月曜日", f: "げつようび", r: "getsuyoobi", e: "Monday" },
-      { l: 4, k: "火曜日", f: "かようび", r: "kayoobi", e: "Tuesday" },
-      { l: 4, k: "水曜日", f: "すいようび", r: "suiyoobi", e: "Wednesday" },
-      { l: 4, k: "木曜日", f: "もくようび", r: "mokuyoobi", e: "Thursday" },
-      { l: 4, k: "金曜日", f: "きんようび", r: "kinyoobi", e: "Friday" },
-      { l: 4, k: "土曜日", f: "どようび", r: "doyoobi", e: "Saturday" },
-      { l: 4, k: "日曜日", f: "にちようび", r: "nichiyoobi", e: "Sunday" },
-      { l: 4, k: "何曜日", f: "なんようび", r: "nanyoobi", e: "what day of the week" },
-      { l: 4, k: "祝日", f: "しゅくじつ", r: "shukujitsu", e: "holiday / national holiday" },
-      { l: 4, k: "週末", f: "しゅうまつ", r: "shuumatsu", e: "weekend" },
-      { l: 4, k: "プレゼント", f: "プレゼント", r: "purezento", e: "present / gift" },
-      { l: 4, k: "大丈夫", f: "だいじょうぶ", r: "daijoobu", e: "all right / OK" },
-      { l: 4, k: "本当", f: "ほんとう", r: "hontoo", e: "truth / really" },
-      { l: 4, k: "〜まで", f: "〜まで", r: "made", e: "until / up to" },
+    function isStrictN5KanjiWord(word) {
+      if (!word) return false;
+      let hasKanji = false;
+      for (const ch of word) {
+        if (isKanjiChar(ch)) {
+          hasKanji = true;
+          if (!N5_KANJI_SET.has(ch)) return false;
+        }
+      }
+      return hasKanji;
+    }
 
-      // LESSON 5 (54)
-      { l: 5, k: "大阪", f: "おおさか", r: "oosaka", e: "Osaka" },
-      { l: 5, k: "京都", f: "きょうと", r: "kyooto", e: "Kyoto" },
-      { l: 5, k: "東京", f: "とうきょう", r: "tookyoo", e: "Tokyo" },
-      { l: 5, k: "広島", f: "ひろしま", r: "hiroshima", e: "Hiroshima" },
-      { l: 5, k: "奈良", f: "なら", r: "nara", e: "Nara" },
-      { l: 5, k: "神戸", f: "こうべ", r: "koobe", e: "Kobe" },
-      { l: 5, k: "横浜", f: "よこはま", r: "yokohama", e: "Yokohama" },
-      { l: 5, k: "大阪城", f: "おおさかじょう", r: "oosakajoo", e: "Osaka Castle" },
-      { l: 5, k: "道頓堀", f: "どうとんぼり", r: "dootombori", e: "Dotonbori" },
-      { l: 5, k: "遊園地", f: "ゆうえんち", r: "yuuenchi", e: "amusement park" },
-      { l: 5, k: "金閣寺", f: "きんかくじ", r: "kinkakuji", e: "Kinkakuji / Golden Pavilion" },
-      { l: 5, k: "出張", f: "しゅっちょう", r: "shutchoo", e: "business trip" },
-      { l: 5, k: "お土産", f: "おみやげ", r: "omiyage", e: "souvenir" },
-      { l: 5, k: "ちょっと", f: "ちょっと", r: "chotto", e: "a little / somewhat" },
-      { l: 5, k: "疲れる", f: "つかれる", r: "tsukareru", e: "to get tired" },
-      { l: 5, k: "支社", f: "ししゃ", r: "shisha", e: "branch office" },
-      { l: 5, k: "何", f: "なに", r: "nani", e: "what" },
-      { l: 5, k: "食べる", f: "たべる", r: "taberu", e: "to eat" },
-      { l: 5, k: "飲む", f: "のむ", r: "nomu", e: "to drink" },
-      { l: 5, k: "遊ぶ", f: "あそぶ", r: "asobu", e: "to play / have fun" },
-      { l: 5, k: "お好み焼き", f: "おこのみやき", r: "okonomiyaki", e: "okonomiyaki / savory pancake" },
-      { l: 5, k: "たこ焼き", f: "たこやき", r: "takoyaki", e: "takoyaki / octopus dumplings" },
-      { l: 5, k: "戻る", f: "もどる", r: "modoru", e: "to return / come back" },
-      { l: 5, k: "一緒", f: "いっしょ", r: "issho", e: "together" },
-      { l: 5, k: "ご飯", f: "ごはん", r: "gohan", e: "meal / cooked rice" },
-      { l: 5, k: "お酒", f: "おさけ", r: "osake", e: "alcohol / sake" },
-      { l: 5, k: "料理", f: "りょうり", r: "ryoori", e: "cooking / cuisine" },
-      { l: 5, k: "時間", f: "じかん", r: "jikan", e: "time / hours" },
-      { l: 5, k: "教える", f: "おしえる", r: "oshieru", e: "to teach / tell" },
-      { l: 5, k: "習う", f: "ならう", r: "narau", e: "to learn" },
-      { l: 5, k: "する", f: "する", r: "suru", e: "to do" },
-      { l: 5, k: "貸す", f: "かす", r: "kasu", e: "to lend" },
-      { l: 5, k: "借りる", f: "かりる", r: "kariru", e: "to borrow" },
-      { l: 5, k: "泳ぐ", f: "およぐ", r: "oyogu", e: "to swim" },
-      { l: 5, k: "走る", f: "はしる", r: "hashiru", e: "to run" },
-      { l: 5, k: "歩く", f: "あるく", r: "aruku", e: "to walk" },
-      { l: 5, k: "結婚", f: "けっこん", r: "kekkon", e: "marriage / to get married" },
-      { l: 5, k: "散歩", f: "さんぽ", r: "sampo", e: "walk / stroll" },
-      { l: 5, k: "買う", f: "かう", r: "kau", e: "to buy" },
-      { l: 5, k: "書く", f: "かく", r: "kaku", e: "to write" },
-      { l: 5, k: "駄目", f: "だめ", r: "dame", e: "no good / impossible" },
-      { l: 5, k: "残念", f: "ざんねん", r: "zannen", e: "regret / pity" },
-      { l: 5, k: "レポート", f: "レポート", r: "repooto", e: "report" },
-      { l: 5, k: "今度", f: "こんど", r: "kondo", e: "this time / next time" },
-      { l: 5, k: "寿司", f: "すし", r: "sushi", e: "sushi" },
-      { l: 5, k: "みそ汁", f: "みそしる", r: "misoshiru", e: "miso soup" },
-      { l: 5, k: "ラーメン", f: "ラーメン", r: "raamen", e: "ramen" },
-      { l: 5, k: "コーラ", f: "コーラ", r: "koora", e: "cola" },
-      { l: 5, k: "おにぎり", f: "おにぎり", r: "onigiri", e: "rice ball" },
-      { l: 5, k: "天ぷら", f: "てんぷら", r: "tempura", e: "tempura" },
-      { l: 5, k: "休む", f: "やすむ", r: "yasumu", e: "to rest / take time off" },
-      { l: 5, k: "順調", f: "じゅんちょう", r: "junchoo", e: "smooth / satisfactory" },
-      { l: 5, k: "公園", f: "こうえん", r: "kooen", e: "park" },
-      { l: 5, k: "また", f: "また", r: "mata", e: "again / also" },
-
-      // LESSON 6 (54)
-      { l: 6, k: "秋葉原", f: "あきはばら", r: "akihabara", e: "Akihabara" },
-      { l: 6, k: "銀座", f: "ぎんざ", r: "ginza", e: "Ginza" },
-      { l: 6, k: "新宿", f: "しんじゅく", r: "shinjuku", e: "Shinjuku" },
-      { l: 6, k: "渋谷", f: "しぶや", r: "shibuya", e: "Shibuya" },
-      { l: 6, k: "浅草", f: "あさくさ", r: "asakusa", e: "Asakusa" },
-      { l: 6, k: "新橋", f: "しんばし", r: "shimbashi", e: "Shimbashi" },
-      { l: 6, k: "上野", f: "うえの", r: "ueno", e: "Ueno" },
-      { l: 6, k: "席", f: "せき", r: "seki", e: "seat" },
-      { l: 6, k: "空く", f: "あく", r: "aku", e: "to become empty / vacant" },
-      { l: 6, k: "会う", f: "あう", r: "au", e: "to meet" },
-      { l: 6, k: "冷蔵庫", f: "れいぞうこ", r: "reizooko", e: "refrigerator" },
-      { l: 6, k: "洗濯機", f: "せんたくき", r: "sentakuki", e: "washing machine" },
-      { l: 6, k: "家具", f: "かぐ", r: "kagu", e: "furniture" },
-      { l: 6, k: "エアコン", f: "エアコン", r: "eakon", e: "air conditioner" },
-      { l: 6, k: "ドア", f: "ドア", r: "doa", e: "door" },
-      { l: 6, k: "窓", f: "まど", r: "mado", e: "window" },
-      { l: 6, k: "開ける", f: "あける", r: "akeru", e: "to open" },
-      { l: 6, k: "閉める", f: "しめる", r: "shimeru", e: "to close" },
-      { l: 6, k: "うち", f: "うち", r: "uchi", e: "home" },
-      { l: 6, k: "家", f: "いえ", r: "ie", e: "house" },
-      { l: 6, k: "電車", f: "でんしゃ", r: "densha", e: "train" },
-      { l: 6, k: "地下鉄", f: "ちかてつ", r: "chikatetsu", e: "subway" },
-      { l: 6, k: "自転車", f: "じてんしゃ", r: "jitensha", e: "bicycle" },
-      { l: 6, k: "バス", f: "バス", r: "basu", e: "bus" },
-      { l: 6, k: "新幹線", f: "しんかんせん", r: "shinkansen", e: "bullet train / Shinkansen" },
-      { l: 6, k: "飛行機", f: "ひこうき", r: "hikooki", e: "airplane" },
-      { l: 6, k: "船", f: "ふね", r: "fune", e: "boat / ship" },
-      { l: 6, k: "歩いて", f: "あるいて", r: "aruite", e: "on foot" },
-      { l: 6, k: "駅", f: "えき", r: "eki", e: "station" },
-      { l: 6, k: "近く", f: "ちかく", r: "chikaku", e: "nearby" },
-      { l: 6, k: "乗る", f: "のる", r: "noru", e: "to get on / ride" },
-      { l: 6, k: "降りる", f: "おりる", r: "oriru", e: "to get off" },
-      { l: 6, k: "見る", f: "みる", r: "miru", e: "to see / look / watch" },
-      { l: 6, k: "乗り換える", f: "のりかえる", r: "norikaeru", e: "to transfer (trains)" },
-      { l: 6, k: "二駅", f: "ふたえき", r: "futaeki", e: "two stations" },
-      { l: 6, k: "店", f: "みせ", r: "mise", e: "shop / store" },
-      { l: 6, k: "交番", f: "こうばん", r: "kooban", e: "police box" },
-      { l: 6, k: "警察署", f: "けいさつしょ", r: "keisatsusho", e: "police station" },
-      { l: 6, k: "市役所", f: "しやくしょ", r: "shiyakusho", e: "city hall" },
-      { l: 6, k: "動物園", f: "どうぶつえん", r: "doobutsuen", e: "zoo" },
-      { l: 6, k: "体育館", f: "たいいくかん", r: "taiikukan", e: "gym / gymnasium" },
-      { l: 6, k: "大使館", f: "たいしかん", r: "taishikan", e: "embassy" },
-      { l: 6, k: "入国管理局", f: "にゅうこくかんりきょく", r: "nyuukokukanrikyoku", e: "Immigration Bureau" },
-      { l: 6, k: "花屋", f: "はなや", r: "hanaya", e: "flower shop" },
-      { l: 6, k: "着く", f: "つく", r: "tsuku", e: "to arrive at / reach" },
-      { l: 6, k: "〜番", f: "〜ばん", r: "ban", e: "number ~" },
-      { l: 6, k: "入口", f: "いりぐち", r: "iriguchi", e: "entrance" },
-      { l: 6, k: "出口", f: "でぐち", r: "deguchi", e: "exit" },
-      { l: 6, k: "出る", f: "でる", r: "deru", e: "to leave / go out" },
-      { l: 6, k: "入る", f: "はいる", r: "hairu", e: "to enter" },
-      { l: 6, k: "まっすぐ", f: "まっすぐ", r: "massugu", e: "straight" },
-      { l: 6, k: "曲がる", f: "まがる", r: "magaru", e: "to turn" },
-      { l: 6, k: "止める", f: "とめる", r: "tomeru", e: "to stop / park / turn off" },
-      { l: 6, k: "すぐ", f: "すぐ", r: "sugu", e: "immediately / right away" },
-
-      // LESSON 7 (44)
-      { l: 7, k: "元気", f: "げんき", r: "genki", e: "healthy / energetic / fine" },
-      { l: 7, k: "IT企業", f: "アイティーきぎょう", r: "aiteekigyoo", e: "IT company" },
-      { l: 7, k: "商社", f: "しょうしゃ", r: "shoosha", e: "trading company" },
-      { l: 7, k: "株式会社", f: "かぶしきがいしゃ", r: "kabushikigaisha", e: "Co., Ltd. / Corporation" },
-      { l: 7, k: "メーカー", f: "メーカー", r: "meekaa", e: "manufacturer" },
-      { l: 7, k: "デザイナー", f: "デザイナー", r: "dezainaa", e: "designer" },
-      { l: 7, k: "駅員", f: "えきいん", r: "ekiin", e: "station attendant" },
-      { l: 7, k: "銀行員", f: "ぎんこういん", r: "ginkooin", e: "bank staff / banker" },
-      { l: 7, k: "教師", f: "きょうし", r: "kyooshi", e: "teacher / instructor" },
-      { l: 7, k: "弁護士", f: "べんごし", r: "bengoshi", e: "lawyer" },
-      { l: 7, k: "美容師", f: "びようし", r: "biyooshi", e: "hairdresser" },
-      { l: 7, k: "店員", f: "てんいん", r: "ten-in", e: "clerk / shop assistant" },
-      { l: 7, k: "警察官", f: "けいさつかん", r: "keisatsukan", e: "policeman" },
-      { l: 7, k: "運転手", f: "うんてんしゅ", r: "untenshu", e: "driver" },
-      { l: 7, k: "働く", f: "はたらく", r: "hataraku", e: "to work" },
-      { l: 7, k: "勉強", f: "べんきょう", r: "benkyoo", e: "study / to study" },
-      { l: 7, k: "掃除", f: "そうじ", r: "sooji", e: "clean / to clean" },
-      { l: 7, k: "研究", f: "けんきゅう", r: "kenkyuu", e: "research / to research" },
-      { l: 7, k: "旅行", f: "りょこう", r: "ryokoo", e: "trip / travel" },
-      { l: 7, k: "歌う", f: "うたう", r: "utau", e: "to sing" },
-      { l: 7, k: "歌", f: "うた", r: "uta", e: "song" },
-      { l: 7, k: "カラオケ", f: "カラオケ", r: "karaoke", e: "karaoke" },
-      { l: 7, k: "スキー", f: "スキー", r: "sukii", e: "skiing" },
-      { l: 7, k: "スキー場", f: "スキーじょう", r: "sukiijoo", e: "ski resort" },
-      { l: 7, k: "長野", f: "ながの", r: "nagano", e: "Nagano" },
-      { l: 7, k: "千葉", f: "ちば", r: "chiba", e: "Chiba" },
-      { l: 7, k: "神奈川", f: "かながわ", r: "kanagawa", e: "Kanagawa" },
-      { l: 7, k: "埼玉", f: "さいたま", r: "saitama", e: "Saitama" },
-      { l: 7, k: "静岡", f: "しずおか", r: "shizuoka", e: "Shizuoka" },
-      { l: 7, k: "山梨", f: "やまなし", r: "yamanashi", e: "Yamanashi" },
-      { l: 7, k: "アルバイト", f: "アルバイト", r: "arubaito", e: "part-time job" },
-      { l: 7, k: "飲み物", f: "のみもの", r: "nomimono", e: "drink / beverage" },
-      { l: 7, k: "食べ物", f: "たべもの", r: "tabemono", e: "food" },
-      { l: 7, k: "持つ", f: "もつ", r: "motsu", e: "to have / hold / possess" },
-      { l: 7, k: "小学校", f: "しょうがっこう", r: "shoogakkoo", e: "elementary school" },
-      { l: 7, k: "中学校", f: "ちゅうがっこう", r: "chuugakkoo", e: "junior high school" },
-      { l: 7, k: "タバコ", f: "タバコ", r: "tabako", e: "tobacco / cigarette" },
-      { l: 7, k: "吸う", f: "すう", r: "suu", e: "to smoke / inhale" },
-      { l: 7, k: "住む", f: "すむ", r: "sumu", e: "to live / reside" },
-      { l: 7, k: "待つ", f: "まつ", r: "matsu", e: "to wait" },
-      { l: 7, k: "寝る", f: "ねる", r: "neru", e: "to sleep / go to bed" },
-      { l: 7, k: "英語", f: "えいご", r: "eigo", e: "English" },
-      { l: 7, k: "お菓子", f: "おかし", r: "okashi", e: "sweets / snacks" },
-      { l: 7, k: "腕時計", f: "うでどけい", r: "udedokei", e: "wristwatch" },
-
-      // LESSON 8 (51)
-      { l: 8, k: "電話", f: "でんわ", r: "denwa", e: "phone / telephone" },
-      { l: 8, k: "グローバル", f: "グローバル", r: "guroobaru", e: "global" },
-      { l: 8, k: "フランス", f: "フランス", r: "furansu", e: "France" },
-      { l: 8, k: "イタリア", f: "イタリア", r: "itaria", e: "Italy" },
-      { l: 8, k: "とても", f: "とても", r: "totemo", e: "very" },
-      { l: 8, k: "あまり", f: "あまり", r: "amari", e: "not very / not much" },
-      { l: 8, k: "忙しい", f: "いそがしい", r: "isogashii", e: "busy" },
-      { l: 8, k: "楽しい", f: "たのしい", r: "tanoshii", e: "fun / enjoyable" },
-      { l: 8, k: "面白い", f: "おもしろい", r: "omoshiroi", e: "interesting / amusing" },
-      { l: 8, k: "難しい", f: "むずかしい", r: "muzukashii", e: "difficult" },
-      { l: 8, k: "易しい", f: "やさしい", r: "yasashii", e: "easy / simple" },
-      { l: 8, k: "大きい", f: "おおきい", r: "ookii", e: "big / large" },
-      { l: 8, k: "小さい", f: "ちいさい", r: "chiisai", e: "small / little" },
-      { l: 8, k: "寒い", f: "さむい", r: "samui", e: "cold (weather)" },
-      { l: 8, k: "熱い / 暑い", f: "あつい", r: "atsui", e: "hot (weather / things)" },
-      { l: 8, k: "高い", f: "たかい", r: "takai", e: "high / tall / expensive" },
-      { l: 8, k: "安い", f: "やすい", r: "yasui", e: "cheap / inexpensive" },
-      { l: 8, k: "新しい", f: "あたらしい", r: "atarashii", e: "new" },
-      { l: 8, k: "古い", f: "ふるい", r: "furui", e: "old" },
-      { l: 8, k: "良い", f: "いい / よい", r: "ii / yoi", e: "good" },
-      { l: 8, k: "悪い", f: "わるい", r: "warui", e: "bad" },
-      { l: 8, k: "白い", f: "しろい", r: "shiroi", e: "white (adj)" },
-      { l: 8, k: "白", f: "しろ", r: "shiro", e: "white (noun)" },
-      { l: 8, k: "黒い", f: "くろい", r: "kuroi", e: "black (adj)" },
-      { l: 8, k: "黒", f: "くろ", r: "kuro", e: "black (noun)" },
-      { l: 8, k: "赤い", f: "あかい", r: "akai", e: "red (adj)" },
-      { l: 8, k: "赤", f: "あか", r: "aka", e: "red (noun)" },
-      { l: 8, k: "青い", f: "あおい", r: "aoi", e: "blue (adj)" },
-      { l: 8, k: "青", f: "あお", r: "ao", e: "blue (noun)" },
-      { l: 8, k: "冷たい", f: "つめたい", r: "tsumetai", e: "cold (to touch)" },
-      { l: 8, k: "暖かい", f: "あたたかい", r: "atatakai", e: "warm" },
-      { l: 8, k: "近い", f: "ちかい", r: "chikai", e: "near / close" },
-      { l: 8, k: "遠い", f: "とおい", r: "tooi", e: "far / distant" },
-      { l: 8, k: "広い", f: "ひろい", r: "hiroi", e: "wide / spacious" },
-      { l: 8, k: "狭い", f: "せまい", r: "semai", e: "narrow / cramped" },
-      { l: 8, k: "早い / 速い", f: "はやい", r: "hayai", e: "early / fast" },
-      { l: 8, k: "遅い", f: "おそい", r: "osoi", e: "late / slow" },
-      { l: 8, k: "美味しい", f: "おいしい", r: "oishii", e: "delicious" },
-      { l: 8, k: "まずい", f: "まずい", r: "mazui", e: "bad-tasting" },
-      { l: 8, k: "うまい", f: "うまい", r: "umai", e: "tasty / skillful" },
-      { l: 8, k: "天気", f: "てんき", r: "tenki", e: "weather" },
-      { l: 8, k: "泊まる", f: "とまる", r: "tomaru", e: "to stay the night" },
-      { l: 8, k: "ホテル", f: "ホテル", r: "hoteru", e: "hotel" },
-      { l: 8, k: "建物", f: "たてもの", r: "tatemono", e: "building" },
-      { l: 8, k: "ジャパン", f: "ジャパン", r: "japan", e: "Japan" },
-      { l: 8, k: "世話", f: "せわ", r: "sewa", e: "care / help" },
-      { l: 8, k: "知る", f: "しる", r: "shiru", e: "to know" },
-      { l: 8, k: "ビル", f: "ビル", r: "biru", e: "building" },
-      { l: 8, k: "平仮名", f: "ひらがな", r: "hiragana", e: "hiragana" },
-      { l: 8, k: "カタカナ", f: "カタカナ", r: "katakana", e: "katakana" },
-      { l: 8, k: "漢字", f: "かんじ", r: "kanji", e: "kanji" },
-
-      // LESSON 9 (50)
-      { l: 9, k: "一つ", f: "ひとつ", r: "hitotsu", e: "one (thing)" },
-      { l: 9, k: "二つ", f: "ふたつ", r: "futatsu", e: "two (things)" },
-      { l: 9, k: "〜個", f: "〜こ", r: "ko", e: "counter for small objects" },
-      { l: 9, k: "〜名", f: "〜めい", r: "mei", e: "people counter (polite)" },
-      { l: 9, k: "何名", f: "なんめい", r: "nammei", e: "how many people" },
-      { l: 9, k: "有名", f: "ゆうめい", r: "yuumei", e: "famous" },
-      { l: 9, k: "賑やか", f: "にぎやか", r: "nigiyaka", e: "lively / bustling" },
-      { l: 9, k: "静か", f: "しずか", r: "shizuka", e: "quiet" },
-      { l: 9, k: "便利", f: "べんり", r: "benri", e: "convenient" },
-      { l: 9, k: "不便", f: "ふべん", r: "fuben", e: "inconvenient" },
-      { l: 9, k: "丈夫", f: "じょうぶ", r: "joobu", e: "strong / durable" },
-      { l: 9, k: "真面目", f: "まじめ", r: "majime", e: "serious / earnest" },
-      { l: 9, k: "立派", f: "りっぱ", r: "rippa", e: "fine / splendid / respectable" },
-      { l: 9, k: "残念", f: "ざんねん", r: "zannen", e: "regrettable / pity" },
-      { l: 9, k: "暇", f: "ひま", r: "hima", e: "free time / not busy" },
-      { l: 9, k: "大変", f: "たいへん", r: "taihen", e: "tough / hard / serious" },
-      { l: 9, k: "たくさん", f: "たくさん", r: "takusan", e: "many / a lot" },
-      { l: 9, k: "いつも", f: "いつも", r: "itsumo", e: "always" },
-      { l: 9, k: "道", f: "みち", r: "michi", e: "road / street / path" },
-      { l: 9, k: "町 / 街", f: "まち", r: "machi", e: "town / city" },
-      { l: 9, k: "そば", f: "そば", r: "soba", e: "soba noodles" },
-      { l: 9, k: "うどん", f: "うどん", r: "udon", e: "udon noodles" },
-      { l: 9, k: "牛丼", f: "ぎゅうどん", r: "gyuudon", e: "beef rice bowl" },
-      { l: 9, k: "焼肉", f: "やきにく", r: "yakiniku", e: "grilled meat / BBQ" },
-      { l: 9, k: "肉", f: "にく", r: "niku", e: "meat" },
-      { l: 9, k: "鶏肉", f: "とりにく", r: "toriniku", e: "chicken meat" },
-      { l: 9, k: "豚肉", f: "ぶたにく", r: "butaniku", e: "pork" },
-      { l: 9, k: "牛肉", f: "ぎゅうにく", r: "gyuuniku", e: "beef" },
-      { l: 9, k: "野菜", f: "やさい", r: "yasai", e: "vegetable" },
-      { l: 9, k: "焼きそば", f: "やきそば", r: "yakisoba", e: "fried noodles" },
-      { l: 9, k: "カレー", f: "カレー", r: "karee", e: "curry" },
-      { l: 9, k: "ピザ", f: "ピザ", r: "piza", e: "pizza" },
-      { l: 9, k: "ハンバーガー", f: "ハンバーガー", r: "hambaagaa", e: "hamburger" },
-      { l: 9, k: "サンドイッチ", f: "サンドイッチ", r: "sandoitchi", e: "sandwich" },
-      { l: 9, k: "リンゴ", f: "リンゴ", r: "ringo", e: "apple" },
-      { l: 9, k: "蜜柑", f: "みかん", r: "mikan", e: "tangerine / mandarin orange" },
-      { l: 9, k: "梨", f: "なし", r: "nashi", e: "pear" },
-      { l: 9, k: "定食", f: "ていしょく", r: "teeshoku", e: "set meal" },
-      { l: 9, k: "ウェイトレス", f: "ウェイトレス", r: "ueitoresu", e: "waitress" },
-      { l: 9, k: "注文", f: "ちゅうもん", r: "chuumon", e: "order / to order" },
-      { l: 9, k: "会計", f: "かいけい", r: "kaikee", e: "bill / check / payment" },
-      { l: 9, k: "円", f: "えん", r: "en", e: "yen" },
-      { l: 9, k: "別々", f: "べつべつ", r: "betsubetsu", e: "separately" },
-      { l: 9, k: "レストラン", f: "レストラン", r: "resutoran", e: "restaurant" },
-      { l: 9, k: "所", f: "ところ", r: "tokoro", e: "place" },
-      { l: 9, k: "時", f: "とき", r: "toki", e: "time / when" },
-      { l: 9, k: "ミス", f: "ミス", r: "misu", e: "mistake" },
-      { l: 9, k: "生活", f: "せいかつ", r: "seekatsu", e: "life / lifestyle" },
-      { l: 9, k: "帰る", f: "かえる", r: "kaeru", e: "to go home / return" },
-      { l: 9, k: "起きる", f: "おきる", r: "okiru", e: "to get up / wake up" },
-
-      // LESSON 10 (47)
-      { l: 10, k: "漫画", f: "まんが", r: "manga", e: "comic book / manga" },
-      { l: 10, k: "アニメ", f: "アニメ", r: "anime", e: "animation / anime" },
-      { l: 10, k: "テレビドラマ", f: "テレビドラマ", r: "terebidorama", e: "TV drama" },
-      { l: 10, k: "番組", f: "ばんぐみ", r: "bangumi", e: "TV program" },
-      { l: 10, k: "果物", f: "くだもの", r: "kudamono", e: "fruit" },
-      { l: 10, k: "魚", f: "さかな", r: "sakana", e: "fish" },
-      { l: 10, k: "ダンス", f: "ダンス", r: "dansu", e: "dance / to dance" },
-      { l: 10, k: "スポーツ", f: "スポーツ", r: "supootsu", e: "sports" },
-      { l: 10, k: "音楽", f: "おんがく", r: "ongaku", e: "music" },
-      { l: 10, k: "お金", f: "おかね", r: "okane", e: "money" },
-      { l: 10, k: "チケット", f: "チケット", r: "chiketto", e: "ticket" },
-      { l: 10, k: "切符", f: "きっぷ", r: "kippu", e: "ticket (train / bus)" },
-      { l: 10, k: "男", f: "おとこ", r: "otoko", e: "man / male" },
-      { l: 10, k: "女", f: "おんな", r: "onna", e: "woman / female" },
-      { l: 10, k: "彼", f: "かれ", r: "kare", e: "he / boyfriend" },
-      { l: 10, k: "彼女", f: "かのじょ", r: "kanojo", e: "she / girlfriend" },
-      { l: 10, k: "僕", f: "ぼく", r: "boku", e: "I / me (used by males)" },
-      { l: 10, k: "俺", f: "おれ", r: "ore", e: "I / me (casual male)" },
-      { l: 10, k: "好き", f: "すき", r: "suki", e: "to like / fond of" },
-      { l: 10, k: "嫌い", f: "きらい", r: "kirai", e: "to hate / dislike" },
-      { l: 10, k: "上手", f: "じょうず", r: "joozu", e: "good at / skillful" },
-      { l: 10, k: "下手", f: "へた", r: "heta", e: "bad at / unskillful" },
-      { l: 10, k: "分かる", f: "わかる", r: "wakaru", e: "to understand" },
-      { l: 10, k: "本屋", f: "ほんや", r: "hon-ya", e: "bookstore" },
-      { l: 10, k: "コンビニ", f: "コンビニ", r: "kombini", e: "convenience store" },
-      { l: 10, k: "喫茶店", f: "きっさてん", r: "kissaten", e: "coffee shop / cafe" },
-      { l: 10, k: "切手", f: "きって", r: "kitte", e: "postage stamp" },
-      { l: 10, k: "少し", f: "すこし", r: "sukoshi", e: "a little / a few" },
-      { l: 10, k: "全然", f: "ぜんぜん", r: "zenzen", e: "not at all" },
-      { l: 10, k: "絵", f: "え", r: "e", e: "picture / drawing" },
-      { l: 10, k: "描く", f: "えがく / かく", r: "egaku / kaku", e: "to draw / paint" },
-      { l: 10, k: "あげる", f: "あげる", r: "ageru", e: "to give" },
-      { l: 10, k: "もらう", f: "もらう", r: "morau", e: "to receive" },
-      { l: 10, k: "返す", f: "かえす", r: "kaesu", e: "to return (something)" },
-      { l: 10, k: "背", f: "せ", r: "se", e: "height / back" },
-      { l: 10, k: "レンタルショップ", f: "レンタルショップ", r: "rentarushoppu", e: "rental shop" },
-      { l: 10, k: "甘い", f: "あまい", r: "amai", e: "sweet" },
-      { l: 10, k: "辛い", f: "からい", r: "karai", e: "spicy / hot" },
-      { l: 10, k: "苦い", f: "にがい", r: "nigai", e: "bitter" },
-      { l: 10, k: "塩辛い", f: "しおからい", r: "shiokarai", e: "salty" },
-      { l: 10, k: "酸っぱい", f: "すっぱい", r: "suppai", e: "sour" },
-      { l: 10, k: "濃い", f: "こい", r: "koi", e: "thick / strong / dark" },
-      { l: 10, k: "薄い", f: "うすい", r: "usui", e: "thin / weak / pale" },
-      { l: 10, k: "物", f: "もの", r: "mono", e: "thing / object" },
-      { l: 10, k: "色", f: "いろ", r: "iro", e: "color" },
-      { l: 10, k: "かかる", f: "かかる", r: "kakaru", e: "to take (time / money)" },
-      { l: 10, k: "どうして", f: "どうして", r: "dooshite", e: "why" },
-
-      // LESSON 11 (46)
-      { l: 11, k: "荷物", f: "にもつ", r: "nimotsu", e: "baggage / luggage" },
-      { l: 11, k: "買い物", f: "かいもの", r: "kaimono", e: "shopping" },
-      { l: 11, k: "洗濯", f: "せんたく", r: "sentaku", e: "laundry / washing" },
-      { l: 11, k: "練習", f: "れんしゅう", r: "renshuu", e: "practice" },
-      { l: 11, k: "洗う", f: "あらう", r: "arau", e: "to wash" },
-      { l: 11, k: "浴びる", f: "あびる", r: "abiru", e: "to take (a shower)" },
-      { l: 11, k: "シャワー", f: "シャワー", r: "shawaa", e: "shower" },
-      { l: 11, k: "準備", f: "じゅんび", r: "jumbi", e: "preparation / to prepare" },
-      { l: 11, k: "まだ", f: "まだ", r: "mada", e: "not yet / still" },
-      { l: 11, k: "もう", f: "もう", r: "moo", e: "already / anymore" },
-      { l: 11, k: "終わる", f: "おわる", r: "owaru", e: "to end / finish" },
-      { l: 11, k: "始まる", f: "はじまる", r: "hajimaru", e: "to begin / start" },
-      { l: 11, k: "空港", f: "くうこう", r: "kuukoo", e: "airport" },
-      { l: 11, k: "チェックイン", f: "チェックイン", r: "chekkuin", e: "check in" },
-      { l: 11, k: "チェックアウト", f: "チェックアウト", r: "chekkuauto", e: "check out" },
-      { l: 11, k: "歯", f: "は", r: "ha", e: "tooth / teeth" },
-      { l: 11, k: "磨く", f: "みがく", r: "migaku", e: "to brush / polish" },
-      { l: 11, k: "撮る", f: "とる", r: "toru", e: "to take (a photo)" },
-      { l: 11, k: "作る", f: "つくる", r: "tsukuru", e: "to make / build" },
-      { l: 11, k: "座る", f: "すわる", r: "suwaru", e: "to sit" },
-      { l: 11, k: "送る", f: "おくる", r: "okuru", e: "to send" },
-      { l: 11, k: "〜中", f: "〜じゅう", r: "juu", e: "in the middle of / during" },
-      { l: 11, k: "ラジオ", f: "ラジオ", r: "rajio", e: "radio" },
-      { l: 11, k: "聞く", f: "きく", r: "kiku", e: "to hear / listen / ask" },
-      { l: 11, k: "出す", f: "だす", r: "dasu", e: "to take out / submit" },
-      { l: 11, k: "宿題", f: "しゅくだい", r: "shukudai", e: "homework" },
-      { l: 11, k: "用事", f: "ようじ", r: "yooji", e: "errand / business to do" },
-      { l: 11, k: "皆さん", f: "みなさん", r: "minasan", e: "everyone / ladies and gentlemen" },
-      { l: 11, k: "庭", f: "にわ", r: "niwa", e: "garden" },
-      { l: 11, k: "桜", f: "さくら", r: "sakura", e: "cherry blossom" },
-      { l: 11, k: "木", f: "き", r: "ki", e: "tree / wood" },
-      { l: 11, k: "春", f: "はる", r: "haru", e: "spring" },
-      { l: 11, k: "夏", f: "なつ", r: "natsu", e: "summer" },
-      { l: 11, k: "秋", f: "あき", r: "aki", e: "autumn / fall" },
-      { l: 11, k: "冬", f: "ふゆ", r: "fuyu", e: "winter" },
-      { l: 11, k: "弁当", f: "べんとう", r: "bentoo", e: "box lunch / bento" },
-      { l: 11, k: "手", f: "て", r: "te", e: "hand" },
-      { l: 11, k: "顔", f: "かお", r: "kao", e: "face" },
-      { l: 11, k: "服", f: "ふく", r: "fuku", e: "clothes" },
-      { l: 11, k: "汚い", f: "きたない", r: "kitanai", e: "dirty" },
-      { l: 11, k: "会話", f: "かいわ", r: "kaiwa", e: "conversation" },
-      { l: 11, k: "文法", f: "ぶんぽう", r: "bumpoo", e: "grammar" },
-      { l: 11, k: "手紙", f: "てがみ", r: "tegami", e: "letter" },
-      { l: 11, k: "〜歳", f: "〜さい", r: "sai", e: "years old" },
-      { l: 11, k: "いくつ", f: "いくつ", r: "ikutsu", e: "how old / how many" },
-      { l: 11, k: "なる", f: "なる", r: "naru", e: "to become" },
-
-      // LESSON 12 (45)
-      { l: 12, k: "姉", f: "あね", r: "ane", e: "older sister (my)" },
-      { l: 12, k: "お姉さん", f: "おねえさん", r: "oneesan", e: "older sister (someone else's)" },
-      { l: 12, k: "妹", f: "いもうと", r: "imooto", e: "younger sister" },
-      { l: 12, k: "弟", f: "おとうと", r: "otooto", e: "younger brother" },
-      { l: 12, k: "叔母 / 伯母", f: "おば", r: "oba", e: "aunt (my)" },
-      { l: 12, k: "おばさん", f: "おばさん", r: "obasan", e: "aunt / middle-aged lady" },
-      { l: 12, k: "叔父 / 伯父", f: "おじ", r: "oji", e: "uncle (my)" },
-      { l: 12, k: "おじさん", f: "おじさん", r: "ojisan", e: "uncle / middle-aged gentleman" },
-      { l: 12, k: "〜ちゃん", f: "〜ちゃん", r: "chan", e: "familiar title suffix" },
-      { l: 12, k: "〜君", f: "〜くん", r: "kun", e: "suffix for boys" },
-      { l: 12, k: "ハッピー遊園地", f: "ハッピーゆうえんち", r: "happiiyuuenchi", e: "Happy Amusement Park" },
-      { l: 12, k: "観覧車", f: "かんらんしゃ", r: "kanransha", e: "Ferris wheel" },
-      { l: 12, k: "前回", f: "ぜんかい", r: "zenkai", e: "last time" },
-      { l: 12, k: "次回", f: "じかい", r: "jikai", e: "next time" },
-      { l: 12, k: "雨", f: "あめ", r: "ame", e: "rain" },
-      { l: 12, k: "雪", f: "ゆき", r: "yuki", e: "snow" },
-      { l: 12, k: "晴れ", f: "はれ", r: "hare", e: "clear / fine weather" },
-      { l: 12, k: "曇り", f: "くもり", r: "kumori", e: "cloudy weather" },
-      { l: 12, k: "風", f: "かぜ", r: "kaze", e: "wind" },
-      { l: 12, k: "晴れる", f: "はれる", r: "hareru", e: "to clear up" },
-      { l: 12, k: "降る", f: "ふる", r: "furu", e: "to fall (rain / snow)" },
-      { l: 12, k: "吹く", f: "ふく", r: "fuku", e: "to blow (wind)" },
-      { l: 12, k: "頃", f: "ごろ", r: "goro", e: "about / around (time)" },
-      { l: 12, k: "辞書", f: "じしょ", r: "jisho", e: "dictionary" },
-      { l: 12, k: "電子辞書", f: "でんしじしょ", r: "denshijisho", e: "electronic dictionary" },
-      { l: 12, k: "授業", f: "じゅぎょう", r: "jugyoo", e: "class / lesson" },
-      { l: 12, k: "富士山", f: "ふじさん", r: "fujisan", e: "Mt. Fuji" },
-      { l: 12, k: "山", f: "やま", r: "yama", e: "mountain" },
-      { l: 12, k: "登る", f: "のぼる", r: "noboru", e: "to climb" },
-      { l: 12, k: "試合", f: "しあい", r: "shiai", e: "match / game" },
-      { l: 12, k: "勝つ", f: "かつ", r: "katsu", e: "to win" },
-      { l: 12, k: "留学", f: "りゅうがく", r: "ryuugaku", e: "study abroad" },
-      { l: 12, k: "夏休み", f: "なつやすみ", r: "natsuyasumi", e: "summer vacation" },
-      { l: 12, k: "冬休み", f: "ふゆやすみ", r: "fuyuyasumi", e: "winter vacation" },
-      { l: 12, k: "春休み", f: "はるやすみ", r: "haruyasumi", e: "spring vacation" },
-      { l: 12, k: "調べる", f: "しらべる", r: "shiraberu", e: "to investigate / examine / look up" },
-      { l: 12, k: "出かける", f: "でかける", r: "dekakeru", e: "to go out" },
-      { l: 12, k: "客", f: "きゃく", r: "kyaku", e: "guest / customer" },
-      { l: 12, k: "店長", f: "てんちょう", r: "tenchoo", e: "store manager" },
-      { l: 12, k: "ケーキ", f: "ケーキ", r: "keeki", e: "cake" },
-      { l: 12, k: "みのり", f: "みのり", r: "minori", e: "Minori (female name)" },
-      { l: 12, k: "和子", f: "かずこ", r: "kazuko", e: "Kazuko (female name)" },
-      { l: 12, k: "拓也", f: "たくや", r: "takuya", e: "Takuya (male name)" },
-      { l: 12, k: "アパート", f: "アパート", r: "apaato", e: "apartment" },
-      { l: 12, k: "マンション", f: "マンション", r: "manshon", e: "condominium / apartment building" },
-
-      // LESSON 13 (45)
-      { l: 13, k: "靴", f: "くつ", r: "kutsu", e: "shoes" },
-      { l: 13, k: "靴下", f: "くつした", r: "kutsushita", e: "socks" },
-      { l: 13, k: "ハンカチ", f: "ハンカチ", r: "hankachi", e: "handkerchief" },
-      { l: 13, k: "帽子", f: "ぼうし", r: "booshi", e: "hat / cap" },
-      { l: 13, k: "上着", f: "うわぎ", r: "uwagi", e: "jacket / coat / outerwear" },
-      { l: 13, k: "コート", f: "コート", r: "kooto", e: "coat" },
-      { l: 13, k: "ズボン", f: "ズボン", r: "zubon", e: "trousers / pants" },
-      { l: 13, k: "靴屋", f: "くつや", r: "kutsuya", e: "shoe store" },
-      { l: 13, k: "パン屋", f: "パンや", r: "pan-ya", e: "bakery" },
-      { l: 13, k: "パン", f: "パン", r: "pan", e: "bread" },
-      { l: 13, k: "魚屋", f: "さかなや", r: "sakanaya", e: "fish shop / market" },
-      { l: 13, k: "思う", f: "おもう", r: "omou", e: "to think" },
-      { l: 13, k: "言う", f: "いう", r: "iu", e: "to say" },
-      { l: 13, k: "サイズ", f: "サイズ", r: "saizu", e: "size" },
-      { l: 13, k: "メートル", f: "メートル", r: "meetoru", e: "meter" },
-      { l: 13, k: "センチ", f: "センチ", r: "senchi", e: "centimeter" },
-      { l: 13, k: "履く", f: "はく", r: "haku", e: "to wear (below waist)" },
-      { l: 13, k: "着る", f: "きる", r: "kiru", e: "to wear (upper body)" },
-      { l: 13, k: "被る", f: "かぶる", r: "kaburu", e: "to wear (on head)" },
-      { l: 13, k: "脱ぐ", f: "ぬぐ", r: "nugu", e: "to take off (clothes / shoes)" },
-      { l: 13, k: "弾く", f: "ひく", r: "hiku", e: "to play (string / keyboard instrument)" },
-      { l: 13, k: "ギター", f: "ギター", r: "gitaa", e: "guitar" },
-      { l: 13, k: "ピアノ", f: "ピアノ", r: "piano", e: "piano" },
-      { l: 13, k: "コンサート", f: "コンサート", r: "konsaato", e: "concert" },
-      { l: 13, k: "ちょうど", f: "ちょうど", r: "choodo", e: "just / exactly" },
-      { l: 13, k: "もちろん", f: "もちろん", r: "mochiron", e: "of course / certainly" },
-      { l: 13, k: "いくら", f: "いくら", r: "ikura", e: "how much (price)" },
-      { l: 13, k: "ドル", f: "ドル", r: "doru", e: "dollar" },
-      { l: 13, k: "〜より", f: "〜より", r: "yori", e: "more than ~" },
-      { l: 13, k: "一番", f: "いちばん", r: "ichiban", e: "number one / most / best" },
-      { l: 13, k: "欲しい", f: "ほしい", r: "hoshii", e: "want / desired" },
-      { l: 13, k: "沖縄", f: "おきなわ", r: "okinawa", e: "Okinawa" },
-      { l: 13, k: "北海道", f: "ほっかいどう", r: "hokkaidoo", e: "Hokkaido" },
-      { l: 13, k: "ヨーロッパ", f: "ヨーロッパ", r: "yooroppa", e: "Europe" },
-      { l: 13, k: "アジア", f: "アジア", r: "ajia", e: "Asia" },
-      { l: 13, k: "イタリア", f: "イタリア", r: "itaria", e: "Italy" },
-      { l: 13, k: "タイ", f: "タイ", r: "tai", e: "Thailand" },
-      { l: 13, k: "マレーシア", f: "マレーシア", r: "mareeshia", e: "Malaysia" },
-      { l: 13, k: "インドネシア", f: "インドネシア", r: "indoneshia", e: "Indonesia" },
-      { l: 13, k: "どう", f: "どう", r: "doo", e: "how / what about" },
-      { l: 13, k: "牛乳", f: "ぎゅうにゅう", r: "gyuunyuu", e: "milk" },
-      { l: 13, k: "子供", f: "こども", r: "kodomo", e: "child / children" },
-      { l: 13, k: "方", f: "ほう", r: "hoo", e: "direction / alternative / side" },
-      { l: 13, k: "ピンク", f: "ピンク", r: "pinku", e: "pink" },
-      { l: 13, k: "ビール", f: "ビール", r: "biiru", e: "beer" },
-
-      // LESSON 14 (52)
-      { l: 14, k: "忘年会", f: "ぼうねんかい", r: "boonenkai", e: "year-end party" },
-      { l: 14, k: "新年会", f: "しんねんかい", r: "shinnenkai", e: "New Year party" },
-      { l: 14, k: "予約", f: "よやく", r: "yoyaku", e: "reservation / booking" },
-      { l: 14, k: "話す", f: "はなす", r: "hanasu", e: "to talk / speak" },
-      { l: 14, k: "質問", f: "しつもん", r: "shitsumon", e: "question / to ask" },
-      { l: 14, k: "問題", f: "もんだい", r: "mondai", e: "problem / question" },
-      { l: 14, k: "答える", f: "こたえる", r: "kotaeru", e: "to answer" },
-      { l: 14, k: "答え", f: "こたえ", r: "kotae", e: "answer" },
-      { l: 14, k: "置く", f: "おく", r: "oku", e: "to put / place" },
-      { l: 14, k: "売る", f: "うる", r: "uru", e: "to sell" },
-      { l: 14, k: "頼む", f: "たのむ", r: "tanomu", e: "to request / ask" },
-      { l: 14, k: "呼ぶ", f: "よぶ", r: "yobu", e: "to call / invite" },
-      { l: 14, k: "困る", f: "こまる", r: "komaru", e: "to be in trouble / at a loss" },
-      { l: 14, k: "危ない", f: "あぶない", r: "abunai", e: "dangerous" },
-      { l: 14, k: "明るい", f: "あかるい", r: "akarui", e: "bright / cheerful" },
-      { l: 14, k: "暗い", f: "くらい", r: "kurai", e: "dark / gloomy" },
-      { l: 14, k: "電話会議", f: "でんわかいぎ", r: "denwakaigi", e: "conference call" },
-      { l: 14, k: "タクシー", f: "タクシー", r: "takushii", e: "taxi" },
-      { l: 14, k: "勤める", f: "つとめる", r: "tsutomeru", e: "to work for / be employed at" },
-      { l: 14, k: "次", f: "つぎ", r: "tsugi", e: "next" },
-      { l: 14, k: "クラス", f: "クラス", r: "kurasu", e: "class" },
-      { l: 14, k: "テスト", f: "テスト", r: "tesuto", e: "test" },
-      { l: 14, k: "生徒", f: "せいと", r: "seeto", e: "student / pupil" },
-      { l: 14, k: "手伝う", f: "てつだう", r: "tetsudau", e: "to help / assist" },
-      { l: 14, k: "立つ", f: "たつ", r: "tatsu", e: "to stand" },
-      { l: 14, k: "見せる", f: "みせる", r: "miseru", e: "to show" },
-      { l: 14, k: "小学生", f: "しょうがくせい", r: "shoogakusee", e: "elementary school student" },
-      { l: 14, k: "中学生", f: "ちゅうがくせい", r: "chuugakusee", e: "junior high school student" },
-      { l: 14, k: "高校生", f: "こうこうせい", r: "kookoosee", e: "high school student" },
-      { l: 14, k: "大学生", f: "だいがくせい", r: "daigakusee", e: "university student" },
-      { l: 14, k: "〜年生", f: "〜ねんせい", r: "nensee", e: "student in ~ year / ~th grader" },
-      { l: 14, k: "電気", f: "でんき", r: "denki", e: "electricity / electric light" },
-      { l: 14, k: "点ける", f: "つける", r: "tsukeru", e: "to turn on (light / power)" },
-      { l: 14, k: "消す", f: "けす", r: "kesu", e: "to turn off / extinguish / erase" },
-      { l: 14, k: "出席", f: "しゅっせき", r: "shusseki", e: "attendance / to attend" },
-      { l: 14, k: "単語", f: "たんご", r: "tango", e: "word / vocabulary" },
-      { l: 14, k: "覚える", f: "おぼえる", r: "oboeru", e: "to remember / memorize" },
-      { l: 14, k: "忘れる", f: "わすれる", r: "wasureru", e: "to forget" },
-      { l: 14, k: "携帯電話", f: "けいたいでんわ", r: "keetaidenwa", e: "mobile phone / cell phone" },
-      { l: 14, k: "使う", f: "つかう", r: "tsukau", e: "to use" },
-      { l: 14, k: "生まれる", f: "うまれる", r: "umareru", e: "to be born" },
-      { l: 14, k: "初めて", f: "はじめて", r: "hajimete", e: "for the first time" },
-      { l: 14, k: "みんな", f: "みんな", r: "minna", e: "everyone / all" },
-      { l: 14, k: "他", f: "ほか", r: "hoka", e: "other / another" },
-      { l: 14, k: "〜回", f: "〜かい", r: "kai", e: "counter for frequency (times)" },
-      { l: 14, k: "〜匹", f: "〜ひき", r: "hiki", e: "counter for small animals" },
-      { l: 14, k: "〜杯", f: "〜はい", r: "hai", e: "counter for cups / glasses" },
-      { l: 14, k: "〜本", f: "〜ほん", r: "hon", e: "counter for long cylindrical objects" },
-      { l: 14, k: "〜冊", f: "〜さつ", r: "satsu", e: "counter for books" },
-      { l: 14, k: "〜台", f: "〜だい", r: "dai", e: "counter for machines / vehicles" },
-      { l: 14, k: "テープ", f: "テープ", r: "teepu", e: "tape" },
-      { l: 14, k: "上げる", f: "あげる", r: "ageru", e: "to raise / lift up" },
-
-      // LESSON 15 (47)
-      { l: 15, k: "試験", f: "しけん", r: "shiken", e: "examination / exam" },
-      { l: 15, k: "留学生", f: "りゅうがくせい", r: "ryuugakusee", e: "international student" },
-      { l: 15, k: "両親", f: "りょうしん", r: "ryooshin", e: "parents" },
-      { l: 15, k: "よく", f: "よく", r: "yoku", e: "often / well" },
-      { l: 15, k: "もっと", f: "もっと", r: "motto", e: "more" },
-      { l: 15, k: "頑張る", f: "がんばる", r: "gambareru", e: "to do one's best / hold out" },
-      { l: 15, k: "飛ぶ", f: "とぶ", r: "tobu", e: "to fly" },
-      { l: 15, k: "趣味", f: "しゅみ", r: "shumi", e: "hobby / interest" },
-      { l: 15, k: "消える", f: "きえる", r: "kieru", e: "to disappear / go out" },
-      { l: 15, k: "渡す", f: "わたす", r: "watasu", e: "to hand over" },
-      { l: 15, k: "渡る", f: "わたる", r: "wataru", e: "to cross (bridge / road)" },
-      { l: 15, k: "痛い", f: "いたい", r: "itai", e: "painful / sore" },
-      { l: 15, k: "可愛い", f: "かわいい", r: "kawaii", e: "cute / lovely" },
-      { l: 15, k: "風邪", f: "かぜ", r: "kaze", e: "cold (illness)" },
-      { l: 15, k: "引く", f: "ひく", r: "hiku", e: "to catch (a cold) / pull" },
-      { l: 15, k: "体", f: "からだ", r: "karada", e: "body" },
-      { l: 15, k: "頭", f: "あたま", r: "atama", e: "head" },
-      { l: 15, k: "足", f: "あし", r: "ashi", e: "foot / leg" },
-      { l: 15, k: "目", f: "め", r: "me", e: "eye" },
-      { l: 15, k: "鼻", f: "はな", r: "hana", e: "nose" },
-      { l: 15, k: "耳", f: "みみ", r: "mimi", e: "ear" },
-      { l: 15, k: "口", f: "くち", r: "kuchi", e: "mouth" },
-      { l: 15, k: "顔", f: "かお", r: "kao", e: "face" },
-      { l: 15, k: "お腹", f: "おなか", r: "onaka", e: "stomach / belly" },
-      { l: 15, k: "病気", f: "びょうき", r: "byooki", e: "illness / disease / sickness" },
-      { l: 15, k: "薬", f: "くすり", r: "kusuri", e: "medicine" },
-      { l: 15, k: "日記", f: "にっき", r: "nikki", e: "diary / journal" },
-      { l: 15, k: "動物", f: "どうぶつ", r: "doobutsu", e: "animal" },
-      { l: 15, k: "鳥", f: "とり", r: "tori", e: "bird" },
-      { l: 15, k: "インターネット", f: "インターネット", r: "intaanetto", e: "Internet" },
-      { l: 15, k: "運転", f: "うんてん", r: "unten", e: "driving / to drive" },
-      { l: 15, k: "野球", f: "やきゅう", r: "yakyuu", e: "baseball" },
-      { l: 15, k: "卓球", f: "たっきゅう", r: "takkyuu", e: "table tennis / ping pong" },
-      { l: 15, k: "サッカー", f: "サッカー", r: "sakkaa", e: "soccer / football" },
-      { l: 15, k: "バスケットボール", f: "バスケットボール", r: "basukettobooru", e: "basketball" },
-      { l: 15, k: "プール", f: "プール", r: "puuru", e: "pool / swimming pool" },
-      { l: 15, k: "海", f: "うみ", r: "umi", e: "sea / ocean" },
-      { l: 15, k: "空", f: "そら", r: "sora", e: "sky" },
-      { l: 15, k: "しかし", f: "しかし", r: "shikashi", e: "however / but" },
-      { l: 15, k: "出来る", f: "できる", r: "dekiru", e: "can do / be able to" },
-      { l: 15, k: "お風呂", f: "おふろ", r: "ofuro", e: "bath" },
-      { l: 15, k: "温泉", f: "おんせん", r: "onsen", e: "hot spring / onsen" },
-      { l: 15, k: "台所", f: "だいどころ", r: "daidokoro", e: "kitchen" },
-      { l: 15, k: "長い", f: "ながい", r: "nagai", e: "long" },
-      { l: 15, k: "短い", f: "みじかい", r: "mijikai", e: "short" },
-      { l: 15, k: "橋", f: "はし", r: "hashi", e: "bridge" },
-      { l: 15, k: "わね", f: "わね", r: "wane", e: "sentence ending (emphasis)" }
-    ];
+    function formatPromptKanji(str) {
+      if (!str) return "";
+      let html = "";
+      for (const ch of str) {
+        if (N5_KANJI_SET.has(ch)) {
+          html += `<span class="n5-target-kanji">${ch}</span>`;
+        } else {
+          html += ch;
+        }
+      }
+      return html;
+    }
 
     let currentDeck = [];
     let currentIndex = 0;
     let isFlipped = false;
     let recognition = null;
     let isRecording = false;
+
+    let totalAttempts = 0;
+    let correctCount = 0;
+    let autoAdvanceTimer = null;
 
     const cardWrap = document.getElementById('cardWrap');
     const cardInner = document.getElementById('cardInner');
@@ -1100,9 +431,17 @@
     const micBtn = document.getElementById('micBtn');
     const lessonFilter = document.getElementById('lessonFilter');
     const promptMode = document.getElementById('promptMode');
+    const btnSkip = document.getElementById('btnSkip');
     const btnMissed = document.getElementById('btnMissed');
     const btnFlip = document.getElementById('btnFlip');
     const btnGotIt = document.getElementById('btnGotIt');
+    const toggleAutoSpeak = document.getElementById('toggleAutoSpeak');
+    const toggleAutoListen = document.getElementById('toggleAutoListen');
+
+    function updateStatsHeader() {
+      const pct = totalAttempts === 0 ? 0 : Math.round((correctCount / totalAttempts) * 100);
+      stats.textContent = `${correctCount} / ${totalAttempts} (${pct}%) • ${currentDeck.length ? currentIndex + 1 : 0}/${currentDeck.length}`;
+    }
 
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
@@ -1113,36 +452,54 @@
     }
 
     function initDeck() {
-      try {
-        const selectedLesson = lessonFilter ? lessonFilter.value : 'all';
-        if (selectedLesson === 'all') {
-          currentDeck = [...VOCAB_DATA];
-        } else {
-          const num = parseInt(selectedLesson, 10);
-          currentDeck = VOCAB_DATA.filter(item => item.l === num);
-        }
-        shuffle(currentDeck);
-        currentIndex = 0;
-        loadCard();
-      } catch (err) {
-        if (statusMsg) statusMsg.textContent = "Init error: " + err.message;
+      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+      const data = window.VOCAB_DATA;
+      if (!data || data.length === 0) {
+        promptText.textContent = "vocab.js missing";
+        statusMsg.textContent = "vocab.js not found in directory.";
+        return;
       }
+
+      let filtered = [...data];
+      const selectedLesson = lessonFilter ? lessonFilter.value : 'all';
+      if (selectedLesson !== 'all') {
+        const num = parseInt(selectedLesson, 10);
+        filtered = filtered.filter(item => item.l === num);
+      }
+
+      const activeModeVal = promptMode ? promptMode.value : 'n5reading';
+      if (activeModeVal === 'n5kanji' || activeModeVal === 'n5reading') {
+        filtered = filtered.filter(item => isStrictN5KanjiWord(item.k));
+      }
+
+      currentDeck = filtered;
+      shuffle(currentDeck);
+      currentIndex = 0;
+      totalAttempts = 0;
+      correctCount = 0;
+      loadCard();
     }
 
     function getActiveMode() {
-      const mode = promptMode ? promptMode.value : 'kanji';
+      const mode = promptMode ? promptMode.value : 'n5reading';
       if (mode === 'mixed') {
-        const modes = ['kanji', 'kana', 'romaji', 'english'];
+        const modes = ['n5reading', 'n5kanji', 'kana', 'english'];
         return modes[Math.floor(Math.random() * modes.length)];
       }
       return mode;
     }
 
-    let activeCardMode = 'kanji';
+    let activeCardMode = 'n5reading';
 
     function loadCard() {
+      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
       if (!currentDeck || currentDeck.length === 0) {
-        promptText.textContent = "No cards";
+        promptLabel.textContent = "INFO";
+        promptText.innerHTML = "No cards match filter";
+        ansKana.textContent = "--";
+        ansRomaji.textContent = "--";
+        ansMeaning.textContent = "--";
+        updateStatsHeader();
         return;
       }
       isFlipped = false;
@@ -1154,28 +511,54 @@
       const card = currentDeck[currentIndex];
       activeCardMode = getActiveMode();
 
-      if (activeCardMode === 'kanji') {
-        promptLabel.textContent = "KANJI / KANA";
-        promptText.textContent = card.k || card.f;
+      if (activeCardMode === 'n5reading') {
+        promptLabel.textContent = "KANJI ➔ READING (ROMAJI/KANA)";
+        promptText.innerHTML = formatPromptKanji(card.k || card.f);
+        userInput.placeholder = "Type/speak reading (e.g. " + card.r.split(' ')[0] + ")...";
+      } else if (activeCardMode === 'n5kanji' || activeCardMode === 'kanji') {
+        promptLabel.textContent = "KANJI ➔ ENGLISH MEANING";
+        promptText.innerHTML = formatPromptKanji(card.k || card.f);
+        userInput.placeholder = "Type/speak English meaning...";
       } else if (activeCardMode === 'kana') {
-        promptLabel.textContent = "FURIGANA";
+        promptLabel.textContent = "FURIGANA ➔ ENGLISH";
         promptText.textContent = card.f;
-      } else if (activeCardMode === 'romaji') {
-        promptLabel.textContent = "ROMAJI";
-        promptText.textContent = card.r;
+        userInput.placeholder = "Type/speak English meaning...";
       } else if (activeCardMode === 'english') {
-        promptLabel.textContent = "ENGLISH";
+        promptLabel.textContent = "ENGLISH ➔ JAPANESE";
         promptText.textContent = card.e.split('/')[0].trim();
+        userInput.placeholder = "Type/speak Japanese reading...";
       }
 
       ansKana.textContent = card.f;
       ansRomaji.textContent = card.r;
       ansMeaning.textContent = card.e;
-      lessonTag.textContent = "Lesson " + card.l;
-      stats.textContent = (currentIndex + 1) + " / " + currentDeck.length;
+      lessonTag.textContent = "L" + card.l;
+      updateStatsHeader();
+
+      // For reading tests, speaking prompt gives the answer away, so auto-speak is skipped unless English
+      if (toggleAutoSpeak && toggleAutoSpeak.checked) {
+        if (activeCardMode !== 'n5reading') {
+          triggerAudioPrompt();
+        }
+      }
+
+      if (toggleAutoListen && toggleAutoListen.checked) {
+        setTimeout(startVoiceInput, 350);
+      }
+    }
+
+    function triggerAudioPrompt() {
+      if (!currentDeck.length) return;
+      const card = currentDeck[currentIndex];
+      if (activeCardMode === 'english') {
+        speakText(card.e.split('/')[0], 'en-US');
+      } else {
+        speakText(card.f, 'ja-JP');
+      }
     }
 
     function flipCard() {
+      if (!currentDeck.length) return;
       isFlipped = !isFlipped;
       if (isFlipped) {
         cardInner.classList.add('flipped');
@@ -1184,15 +567,23 @@
       }
     }
 
-    function nextCard() {
+    function advanceNext() {
+      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
       if (currentIndex < currentDeck.length - 1) {
         currentIndex++;
         loadCard();
       } else {
-        statusMsg.textContent = "Deck finished! Reshuffling...";
+        statusMsg.textContent = "Deck complete! Reshuffling...";
         statusMsg.className = "status-msg info";
         setTimeout(initDeck, 1200);
       }
+    }
+
+    function skipCard() {
+      if (!currentDeck.length) return;
+      statusMsg.textContent = "Skipped";
+      statusMsg.className = "status-msg info";
+      advanceNext();
     }
 
     function cleanStr(s) {
@@ -1200,79 +591,98 @@
         .toLowerCase()
         .replace(/^to\s+/, '')
         .replace(/^(a|an|the)\s+/, '')
-        .replace(/[^a-z0-9]/g, '');
+        .replace(/[^a-z0-9ぁ-んァ-ヶー]/g, '');
     }
 
     function checkAnswer(val) {
-      if (!val || !val.trim()) return;
-      const card = currentDeck[currentIndex];
-      const cleanedInput = cleanStr(val);
+      if (!val || !val.trim() || !currentDeck.length) return;
+      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+      
+      const cleanInput = cleanStr(val);
 
-      if (activeCardMode === 'english') {
+      if (cleanInput === "skip" || cleanInput === "next") {
+        skipCard();
+        return;
+      }
+
+      totalAttempts++;
+      const card = currentDeck[currentIndex];
+      let isCorrect = false;
+
+      // Evaluation for Reading checks (Kanji -> Romaji / Kana OR English -> Japanese)
+      if (activeCardMode === 'n5reading' || activeCardMode === 'english') {
         const cleanedRomaji = cleanStr(card.r);
         const altRomaji = cleanedRomaji.replace(/oo/g, 'ou').replace(/ee/g, 'ei');
-        const match = cleanedInput === cleanedRomaji || cleanedInput === altRomaji || val.trim() === card.f;
-
-        if (match) {
-          statusMsg.textContent = "Correct! ✓";
-          statusMsg.className = "status-msg correct";
-          if (!isFlipped) flipCard();
-        } else {
-          statusMsg.textContent = "Try again or tap Flip to view.";
-          statusMsg.className = "status-msg incorrect";
-        }
+        const cleanKana = cleanStr(card.f);
+        
+        isCorrect = (
+          cleanInput === cleanedRomaji || 
+          cleanInput === altRomaji || 
+          cleanInput === cleanKana || 
+          cleanInput.replace(/ou/g, 'oo') === cleanedRomaji
+        );
       } else {
+        // Evaluation for English meaning
         const meanings = card.e.split(/[\/,]/).map(cleanStr);
-        const isMatch = meanings.some(m => m === cleanedInput || (m.length > 3 && cleanedInput.includes(m)));
+        isCorrect = meanings.some(m => m === cleanInput || (m.length > 3 && cleanInput.includes(m)));
+      }
 
-        if (isMatch) {
-          statusMsg.textContent = "Correct! ✓";
-          statusMsg.className = "status-msg correct";
-          if (!isFlipped) flipCard();
-        } else {
-          statusMsg.textContent = "Not quite. Check answer!";
-          statusMsg.className = "status-msg incorrect";
-        }
+      if (isCorrect) {
+        correctCount++;
+        statusMsg.textContent = "Correct! ✓";
+        statusMsg.className = "status-msg correct";
+        updateStatsHeader();
+        if (!isFlipped) flipCard();
+
+        autoAdvanceTimer = setTimeout(() => {
+          advanceNext();
+        }, 850);
+      } else {
+        statusMsg.textContent = "Incorrect. Check answer & tap Next.";
+        statusMsg.className = "status-msg incorrect";
+        updateStatsHeader();
+        if (!isFlipped) flipCard();
       }
     }
 
     function speakText(txt, lang) {
-      if (!('speechSynthesis' in window)) {
-        statusMsg.textContent = "Speech synthesis not supported.";
-        return;
-      }
+      if (!('speechSynthesis' in window)) return;
       try {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(txt);
         u.lang = lang || 'ja-JP';
-        u.rate = 0.85;
+        u.rate = 0.9;
         window.speechSynthesis.speak(u);
+      } catch (err) {}
+    }
+
+    function startVoiceInput() {
+      if (!recognition || isRecording) return;
+      // If we are expecting Japanese reading, listen in ja-JP. If English meaning, en-US.
+      recognition.lang = (activeCardMode === 'n5reading' || activeCardMode === 'english') ? 'ja-JP' : 'en-US';
+      try {
+        recognition.start();
       } catch (err) {
-        console.error(err);
+        try { recognition.stop(); } catch (e) {}
       }
     }
 
-    // Direct event listener attachments
     if (cardWrap) cardWrap.onclick = flipCard;
     if (btnFlip) btnFlip.onclick = flipCard;
-    if (btnGotIt) btnGotIt.onclick = () => nextCard();
+    if (btnSkip) btnSkip.onclick = skipCard;
+    if (btnGotIt) btnGotIt.onclick = () => advanceNext();
     if (btnMissed) {
       btnMissed.onclick = () => {
         const card = currentDeck[currentIndex];
         currentDeck.splice(currentIndex + 4, 0, card);
-        nextCard();
+        advanceNext();
       };
     }
 
     if (speakerBtn) {
       speakerBtn.onclick = (e) => {
         e.stopPropagation();
-        const card = currentDeck[currentIndex];
-        if (activeCardMode === 'english') {
-          speakText(card.e.split('/')[0], 'en-US');
-        } else {
-          speakText(card.f, 'ja-JP');
-        }
+        triggerAudioPrompt();
       };
     }
 
@@ -1285,9 +695,8 @@
     }
 
     if (lessonFilter) lessonFilter.onchange = initDeck;
-    if (promptMode) promptMode.onchange = loadCard;
+    if (promptMode) promptMode.onchange = initDeck;
 
-    // Speech Recognition initialization
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRec && micBtn) {
       recognition = new SpeechRec();
@@ -1308,10 +717,12 @@
       };
 
       recognition.onerror = (e) => {
-        statusMsg.textContent = "Mic error: " + (e.error || 'Check permissions');
-        statusMsg.className = "status-msg incorrect";
         micBtn.classList.remove('recording');
         isRecording = false;
+        if (e.error !== 'no-speech') {
+          statusMsg.textContent = "Voice error: " + (e.error || 'Mic disabled');
+          statusMsg.className = "status-msg incorrect";
+        }
       };
 
       recognition.onend = () => {
@@ -1323,23 +734,13 @@
         e.stopPropagation();
         if (isRecording) {
           recognition.stop();
-          return;
+        } else {
+          startVoiceInput();
         }
-        recognition.lang = (activeCardMode === 'english') ? 'ja-JP' : 'en-US';
-        try {
-          recognition.start();
-        } catch (err) {
-          recognition.stop();
-        }
-      };
-    } else if (micBtn) {
-      micBtn.style.opacity = '0.5';
-      micBtn.onclick = () => {
-        statusMsg.textContent = "Voice recognition not supported or mic disabled.";
-        statusMsg.className = "status-msg info";
       };
     }
 
-    // Direct synchronous execution
     initDeck();
   </script>
+</body>
+</html>
