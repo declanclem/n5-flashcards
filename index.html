@@ -411,7 +411,7 @@
     <button class="btn btn-next" id="btnNext">Next ➔</button>
   </div>
 
- <script src="vocab.js"></script>
+<script src="vocab.js"></script>
 
   <script>
     const N5_KANJI_SET = new Set([
@@ -458,8 +458,7 @@
     let isFlipped = false;
     let recognition = null;
     let isRecording = false;
-    let isSpeechStarting = false;
-    let listenRetryTimer = null;
+    let listenTimer = null;
 
     const sessionHistory = new Map();
     let isReviewingFailures = false;
@@ -521,9 +520,9 @@
     }
 
     function initDeck() {
-      stopVoiceInput();
+      destroyVoiceEngine();
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
-      if (listenRetryTimer) clearTimeout(listenRetryTimer);
+      if (listenTimer) clearTimeout(listenTimer);
 
       const data = window.VOCAB_DATA;
       if (!data || data.length === 0) {
@@ -583,9 +582,9 @@
     }
 
     function loadCard() {
-      stopVoiceInput();
+      destroyVoiceEngine();
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
-      if (listenRetryTimer) clearTimeout(listenRetryTimer);
+      if (listenTimer) clearTimeout(listenTimer);
 
       if (!currentDeck || currentDeck.length === 0) {
         promptLabel.textContent = "INFO";
@@ -633,12 +632,12 @@
       lessonTag.textContent = "L" + card.l;
       updateStatsHeader();
 
-      // Handshake: If speaking, mic starts only after speech utterance completes
+      // Handshake: audio output finishes first, then mic opens cleanly
       if (toggleAutoSpeak && toggleAutoSpeak.checked) {
         if (activeCardMode !== 'n5reading') {
           triggerAudioPrompt(() => {
             if (toggleAutoListen && toggleAutoListen.checked) {
-              listenRetryTimer = setTimeout(startVoiceInput, 300);
+              listenTimer = setTimeout(spawnVoiceSession, 350);
             }
           });
           return;
@@ -646,7 +645,7 @@
       }
 
       if (toggleAutoListen && toggleAutoListen.checked) {
-        listenRetryTimer = setTimeout(startVoiceInput, 350);
+        listenTimer = setTimeout(spawnVoiceSession, 350);
       }
     }
 
@@ -671,9 +670,9 @@
     }
 
     function advanceNext() {
-      stopVoiceInput();
+      destroyVoiceEngine();
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
-      if (listenRetryTimer) clearTimeout(listenRetryTimer);
+      if (listenTimer) clearTimeout(listenTimer);
 
       if (currentIndex < currentDeck.length - 1) {
         currentIndex++;
@@ -733,7 +732,7 @@
       }
 
       if (isCorrect) {
-        stopVoiceInput(); // Stop mic immediately on success to prevent collision
+        destroyVoiceEngine(); // Kill mic immediately to free audio device for transition
         correctCount++;
         sessionHistory.set(cardKey, 'passed');
         setBadgeVisual(cardStatusFront, 'passed');
@@ -779,27 +778,71 @@
       }
     }
 
-    // Pipeline-controlled Voice Handling
-    function stopVoiceInput() {
-      if (!recognition) return;
-      isSpeechStarting = false;
-      try {
-        recognition.abort(); // Force-kill pending instances before transition
-      } catch (e) {}
-      micBtn.classList.remove('recording');
+    // --- REGENERATIVE SPEECH RECOGNITION ENGINE ---
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function destroyVoiceEngine() {
+      if (recognition) {
+        try {
+          recognition.onstart = null;
+          recognition.onresult = null;
+          recognition.onerror = null;
+          recognition.onend = null;
+          recognition.abort();
+        } catch (e) {}
+        recognition = null;
+      }
       isRecording = false;
+      micBtn.classList.remove('recording');
     }
 
-    function startVoiceInput() {
-      if (!recognition || isRecording || isSpeechStarting) return;
-      isSpeechStarting = true;
+    function spawnVoiceSession() {
+      if (!SpeechRec) return;
+      destroyVoiceEngine();
 
-      recognition.lang = (activeCardMode === 'n5reading' || activeCardMode === 'english') ? 'ja-JP' : 'en-US';
       try {
-        recognition.start();
+        const rec = new SpeechRec();
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.lang = (activeCardMode === 'n5reading' || activeCardMode === 'english') ? 'ja-JP' : 'en-US';
+
+        rec.onstart = () => {
+          isRecording = true;
+          micBtn.classList.add('recording');
+          statusMsg.textContent = "Listening...";
+          statusMsg.className = "status-msg info";
+        };
+
+        rec.onresult = (evt) => {
+          const transcript = evt.results[0][0].transcript;
+          userInput.value = transcript;
+          checkAnswer(transcript);
+        };
+
+        rec.onerror = (e) => {
+          destroyVoiceEngine();
+          // Silently recover from abort/no-speech without freezing the app
+          if (e.error === 'aborted' || e.error === 'no-speech') {
+            if (toggleAutoListen && toggleAutoListen.checked && !isFlipped) {
+              listenTimer = setTimeout(spawnVoiceSession, 400);
+            }
+            return;
+          }
+          statusMsg.textContent = "Voice error: " + (e.error || 'Retry');
+          statusMsg.className = "status-msg incorrect";
+        };
+
+        rec.onend = () => {
+          destroyVoiceEngine();
+        };
+
+        recognition = rec;
+        rec.start();
       } catch (err) {
-        isSpeechStarting = false;
-        try { recognition.abort(); } catch (e) {}
+        destroyVoiceEngine();
+        if (toggleAutoListen && toggleAutoListen.checked && !isFlipped) {
+          listenTimer = setTimeout(spawnVoiceSession, 450);
+        }
       }
     }
 
@@ -833,58 +876,14 @@
     if (lessonFilter) lessonFilter.onchange = initDeck;
     if (promptMode) promptMode.onchange = initDeck;
 
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRec && micBtn) {
-      recognition = new SpeechRec();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        isRecording = true;
-        isSpeechStarting = false;
-        micBtn.classList.add('recording');
-        statusMsg.textContent = "Listening...";
-        statusMsg.className = "status-msg info";
-      };
-
-      recognition.onresult = (evt) => {
-        const transcript = evt.results[0][0].transcript;
-        userInput.value = transcript;
-        checkAnswer(transcript);
-      };
-
-      recognition.onerror = (e) => {
-        micBtn.classList.remove('recording');
-        isRecording = false;
-        isSpeechStarting = false;
-
-        // Gracefully handle aborted and no-speech events without alarming error text
-        if (e.error === 'aborted') {
-          // If auto-listen is active, schedule a clean, unhurried retry
-          if (toggleAutoListen && toggleAutoListen.checked && !isFlipped) {
-            listenRetryTimer = setTimeout(startVoiceInput, 400);
-          }
-          return;
-        }
-
-        if (e.error !== 'no-speech') {
-          statusMsg.textContent = "Voice error: " + (e.error || 'Mic disabled');
-          statusMsg.className = "status-msg incorrect";
-        }
-      };
-
-      recognition.onend = () => {
-        micBtn.classList.remove('recording');
-        isRecording = false;
-        isSpeechStarting = false;
-      };
-
+    if (micBtn) {
       micBtn.onclick = (e) => {
         e.stopPropagation();
         if (isRecording) {
-          stopVoiceInput();
+          destroyVoiceEngine();
+          statusMsg.textContent = "";
         } else {
-          startVoiceInput();
+          spawnVoiceSession();
         }
       };
     }
