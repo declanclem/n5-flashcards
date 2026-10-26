@@ -53,6 +53,20 @@
       font-size: 0.75rem;
       letter-spacing: 0.02em;
     }
+    .review-filter-btn {
+      background: #451a1a;
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      display: none;
+    }
+    .review-filter-btn.active {
+      background: var(--danger);
+      color: #fff;
+    }
 
     .controls-grid {
       width: 100%;
@@ -147,6 +161,32 @@
       font-size: 0.75rem;
       color: var(--text-muted);
     }
+
+    /* Green Tick / Red Cross Indicator Badges */
+    .card-status-badge {
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .status-unseen {
+      background: #334155;
+      color: var(--text-muted);
+    }
+    .status-passed {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+    .status-failed {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
     .prompt-text {
       text-align: center;
       font-size: 2.2rem;
@@ -241,19 +281,20 @@
     .status-msg.incorrect { color: var(--danger); }
     .status-msg.info { color: var(--accent); }
 
+    /* Clean 3-Button Action Grid */
     .action-grid {
       width: 100%;
       max-width: 440px;
       display: grid;
-      grid-template-columns: 1fr 1fr 1.1fr 1fr;
-      gap: 6px;
+      grid-template-columns: 1fr 1fr 1.2fr;
+      gap: 8px;
       margin-bottom: 12px;
     }
     .btn {
-      padding: 12px 4px;
+      padding: 12px 8px;
       border-radius: 10px;
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       border: none;
       cursor: pointer;
       display: flex;
@@ -262,16 +303,18 @@
       color: #fff;
     }
     .btn-skip { background: #475569; }
-    .btn-missed { background: #dc2626; }
     .btn-flip { background: #3b82f6; }
-    .btn-gotit { background: #16a34a; }
+    .btn-next { background: #0284c7; }
     .btn:active { opacity: 0.8; transform: translateY(1px); }
   </style>
 </head>
 <body>
   <header>
     <span>JLPT N5 Drill</span>
-    <span class="badge" id="stats">0 / 0 (0%)</span>
+    <div style="display:flex; gap:6px; align-items:center;">
+      <button class="review-filter-btn" id="reviewFailuresBtn">Failures: 0</button>
+      <span class="badge" id="stats">0 / 0 (0%)</span>
+    </div>
   </header>
 
   <div class="controls-grid">
@@ -319,7 +362,10 @@
       <div class="card-front">
         <div class="card-meta">
           <span id="promptLabel">KANJI</span>
-          <button class="icon-btn" id="speakerBtn" style="padding:4px 8px; font-size:1rem;" title="Listen">🔊</button>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="card-status-badge status-unseen" id="cardStatusFront">Unseen</span>
+            <button class="icon-btn" id="speakerBtn" style="padding:4px 8px; font-size:1rem;" title="Listen">🔊</button>
+          </div>
         </div>
         <div class="prompt-text" id="promptText">Loading...</div>
         <div class="tap-hint">Tap card or press [Flip] to reveal</div>
@@ -327,7 +373,10 @@
       <div class="card-back">
         <div class="card-meta">
           <span>ANSWER</span>
-          <span id="lessonTag" style="color:var(--accent);">L1</span>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="card-status-badge status-unseen" id="cardStatusBack">Unseen</span>
+            <span id="lessonTag" style="color:var(--accent);">L1</span>
+          </div>
         </div>
         <div style="margin: auto 0; display:flex; flex-direction:column; gap:6px;">
           <div class="answer-kana" id="ansKana">--</div>
@@ -355,11 +404,11 @@
     <button class="icon-btn" id="micBtn" title="Speak Answer">🎤</button>
   </div>
 
+  <!-- Clear 3-Action Bar: Skip, Flip, Next -->
   <div class="action-grid">
     <button class="btn btn-skip" id="btnSkip">↷ Skip</button>
-    <button class="btn btn-missed" id="btnMissed">✕ Missed</button>
     <button class="btn btn-flip" id="btnFlip">↻ Flip</button>
-    <button class="btn btn-gotit" id="btnGotIt">✓ Got It</button>
+    <button class="btn btn-next" id="btnNext">Next ➔</button>
   </div>
 
   <script src="vocab.js"></script>
@@ -410,6 +459,10 @@
     let recognition = null;
     let isRecording = false;
 
+    // Session Memory (Card Key -> 'passed' | 'failed')
+    const sessionHistory = new Map();
+    let isReviewingFailures = false;
+
     let totalAttempts = 0;
     let correctCount = 0;
     let autoAdvanceTimer = null;
@@ -418,6 +471,8 @@
     const cardInner = document.getElementById('cardInner');
     const promptText = document.getElementById('promptText');
     const promptLabel = document.getElementById('promptLabel');
+    const cardStatusFront = document.getElementById('cardStatusFront');
+    const cardStatusBack = document.getElementById('cardStatusBack');
     const ansKana = document.getElementById('ansKana');
     const ansRomaji = document.getElementById('ansRomaji');
     const ansMeaning = document.getElementById('ansMeaning');
@@ -430,15 +485,31 @@
     const lessonFilter = document.getElementById('lessonFilter');
     const promptMode = document.getElementById('promptMode');
     const btnSkip = document.getElementById('btnSkip');
-    const btnMissed = document.getElementById('btnMissed');
     const btnFlip = document.getElementById('btnFlip');
-    const btnGotIt = document.getElementById('btnGotIt');
+    const btnNext = document.getElementById('btnNext');
+    const reviewFailuresBtn = document.getElementById('reviewFailuresBtn');
     const toggleAutoSpeak = document.getElementById('toggleAutoSpeak');
     const toggleAutoListen = document.getElementById('toggleAutoListen');
+
+    function getCardKey(card) {
+      return `${card.l}-${card.k}-${card.f}`;
+    }
 
     function updateStatsHeader() {
       const pct = totalAttempts === 0 ? 0 : Math.round((correctCount / totalAttempts) * 100);
       stats.textContent = `${correctCount} / ${totalAttempts} (${pct}%) • ${currentDeck.length ? currentIndex + 1 : 0}/${currentDeck.length}`;
+
+      // Update Failures Quick-Filter Button
+      let failureCount = 0;
+      sessionHistory.forEach((status) => {
+        if (status === 'failed') failureCount++;
+      });
+      if (failureCount > 0) {
+        reviewFailuresBtn.style.display = "block";
+        reviewFailuresBtn.textContent = isReviewingFailures ? `Exit Review (${failureCount})` : `Review Failed (${failureCount})`;
+      } else {
+        reviewFailuresBtn.style.display = "none";
+      }
     }
 
     function shuffle(arr) {
@@ -459,22 +530,27 @@
       }
 
       let filtered = [...data];
-      const selectedLesson = lessonFilter ? lessonFilter.value : 'all';
-      if (selectedLesson !== 'all') {
-        const num = parseInt(selectedLesson, 10);
-        filtered = filtered.filter(item => item.l === num);
-      }
 
-      const activeModeVal = promptMode ? promptMode.value : 'n5reading';
-      if (activeModeVal === 'n5reading') {
-        filtered = filtered.filter(item => isStrictN5KanjiWord(item.k));
+      if (isReviewingFailures) {
+        filtered = filtered.filter(item => sessionHistory.get(getCardKey(item)) === 'failed');
+        reviewFailuresBtn.classList.add('active');
+      } else {
+        reviewFailuresBtn.classList.remove('active');
+        const selectedLesson = lessonFilter ? lessonFilter.value : 'all';
+        if (selectedLesson !== 'all') {
+          const num = parseInt(selectedLesson, 10);
+          filtered = filtered.filter(item => item.l === num);
+        }
+
+        const activeModeVal = promptMode ? promptMode.value : 'n5reading';
+        if (activeModeVal === 'n5reading') {
+          filtered = filtered.filter(item => isStrictN5KanjiWord(item.k));
+        }
       }
 
       currentDeck = filtered;
       shuffle(currentDeck);
       currentIndex = 0;
-      totalAttempts = 0;
-      correctCount = 0;
       loadCard();
     }
 
@@ -489,11 +565,25 @@
 
     let activeCardMode = 'n5reading';
 
+    function setBadgeVisual(el, status) {
+      el.className = 'card-status-badge';
+      if (status === 'passed') {
+        el.classList.add('status-passed');
+        el.textContent = '✓ Pass';
+      } else if (status === 'failed') {
+        el.classList.add('status-failed');
+        el.textContent = '✗ Fail';
+      } else {
+        el.classList.add('status-unseen');
+        el.textContent = 'Unseen';
+      }
+    }
+
     function loadCard() {
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
       if (!currentDeck || currentDeck.length === 0) {
         promptLabel.textContent = "INFO";
-        promptText.innerHTML = "No cards in filter";
+        promptText.innerHTML = isReviewingFailures ? "No failed cards left!" : "No cards in filter";
         ansKana.textContent = "--";
         ansRomaji.textContent = "--";
         ansMeaning.textContent = "--";
@@ -508,6 +598,11 @@
 
       const card = currentDeck[currentIndex];
       activeCardMode = getActiveMode();
+
+      // Retrieve Green Tick / Red Cross State for this Card
+      const currentStatus = sessionHistory.get(getCardKey(card)) || 'unseen';
+      setBadgeVisual(cardStatusFront, currentStatus);
+      setBadgeVisual(cardStatusBack, currentStatus);
 
       if (activeCardMode === 'n5reading') {
         promptLabel.textContent = "KANJI ➔ READING (ROMAJI/KANA)";
@@ -533,7 +628,7 @@
       lessonTag.textContent = "L" + card.l;
       updateStatsHeader();
 
-      // Handshake: If auto-speaking, wait until speech finishes BEFORE engaging mic
+      // Ensure audio prompt finishes before mic listens
       if (toggleAutoSpeak && toggleAutoSpeak.checked) {
         if (activeCardMode !== 'n5reading') {
           triggerAudioPrompt(() => {
@@ -610,6 +705,7 @@
 
       totalAttempts++;
       const card = currentDeck[currentIndex];
+      const cardKey = getCardKey(card);
       let isCorrect = false;
 
       if (activeCardMode === 'n5reading' || activeCardMode === 'english') {
@@ -630,6 +726,10 @@
 
       if (isCorrect) {
         correctCount++;
+        sessionHistory.set(cardKey, 'passed');
+        setBadgeVisual(cardStatusFront, 'passed');
+        setBadgeVisual(cardStatusBack, 'passed');
+
         statusMsg.textContent = "Correct! ✓";
         statusMsg.className = "status-msg correct";
         updateStatsHeader();
@@ -639,7 +739,11 @@
           advanceNext();
         }, 850);
       } else {
-        statusMsg.textContent = "Incorrect. Check answer & tap Next.";
+        sessionHistory.set(cardKey, 'failed');
+        setBadgeVisual(cardStatusFront, 'failed');
+        setBadgeVisual(cardStatusBack, 'failed');
+
+        statusMsg.textContent = "Incorrect. Check answer & tap [Next ➔]";
         statusMsg.className = "status-msg incorrect";
         updateStatsHeader();
         if (!isFlipped) flipCard();
@@ -676,15 +780,16 @@
       }
     }
 
+    // Direct Bindings
     if (cardWrap) cardWrap.onclick = flipCard;
     if (btnFlip) btnFlip.onclick = flipCard;
     if (btnSkip) btnSkip.onclick = skipCard;
-    if (btnGotIt) btnGotIt.onclick = () => advanceNext();
-    if (btnMissed) {
-      btnMissed.onclick = () => {
-        const card = currentDeck[currentIndex];
-        currentDeck.splice(currentIndex + 4, 0, card);
-        advanceNext();
+    if (btnNext) btnNext.onclick = advanceNext;
+
+    if (reviewFailuresBtn) {
+      reviewFailuresBtn.onclick = () => {
+        isReviewingFailures = !isReviewingFailures;
+        initDeck();
       };
     }
 
