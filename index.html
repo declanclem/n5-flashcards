@@ -162,7 +162,6 @@
       color: var(--text-muted);
     }
 
-    /* Green Tick / Red Cross Indicator Badges */
     .card-status-badge {
       font-weight: 700;
       padding: 2px 7px;
@@ -281,7 +280,6 @@
     .status-msg.incorrect { color: var(--danger); }
     .status-msg.info { color: var(--accent); }
 
-    /* Clean 3-Button Action Grid */
     .action-grid {
       width: 100%;
       max-width: 440px;
@@ -338,9 +336,11 @@
     </select>
 
     <select id="promptMode">
-      <option value="n5reading">Kanji ➔ Reading (153 N5 Kanji)</option>
-      <option value="kana">Furigana ➔ English (All 677)</option>
+      <option value="jukugo_reading" selected>Compound Onyomi (Jukugo) ➔ Reading</option>
+      <option value="jukugo_english">Compound Onyomi (Jukugo) ➔ English</option>
+      <option value="n5reading">All N5 Kanji ➔ Reading</option>
       <option value="kanji">All Kanji/Kana ➔ English (677)</option>
+      <option value="kana">Furigana ➔ English (677)</option>
       <option value="english">English ➔ Japanese (677)</option>
       <option value="mixed">Mixed Drill</option>
     </select>
@@ -404,14 +404,13 @@
     <button class="icon-btn" id="micBtn" title="Speak Answer">🎤</button>
   </div>
 
-  <!-- Clear 3-Action Bar: Skip, Flip, Next -->
   <div class="action-grid">
     <button class="btn btn-skip" id="btnSkip">↷ Skip</button>
     <button class="btn btn-flip" id="btnFlip">↻ Flip</button>
     <button class="btn btn-next" id="btnNext">Next ➔</button>
   </div>
 
-<script src="vocab.js"></script>
+  <script src="vocab.js"></script>
 
   <script>
     const N5_KANJI_SET = new Set([
@@ -438,6 +437,19 @@
         }
       }
       return hasKanji;
+    }
+
+    // Compound On'yomi (Jukugo) Detector: 2+ characters, all Kanji, all N5
+    function isJukugoWord(card) {
+      if (!card || !card.k) return false;
+      const k = card.k.trim();
+      if (k.length < 2) return false;
+      for (const ch of k) {
+        if (!isKanjiChar(ch) || !N5_KANJI_SET.has(ch)) {
+          return false;
+        }
+      }
+      return true;
     }
 
     function formatPromptKanji(str) {
@@ -544,8 +556,10 @@
           filtered = filtered.filter(item => item.l === num);
         }
 
-        const activeModeVal = promptMode ? promptMode.value : 'n5reading';
-        if (activeModeVal === 'n5reading') {
+        const activeModeVal = promptMode ? promptMode.value : 'jukugo_reading';
+        if (activeModeVal === 'jukugo_reading' || activeModeVal === 'jukugo_english') {
+          filtered = filtered.filter(item => isJukugoWord(item));
+        } else if (activeModeVal === 'n5reading') {
           filtered = filtered.filter(item => isStrictN5KanjiWord(item.k));
         }
       }
@@ -557,15 +571,15 @@
     }
 
     function getActiveMode() {
-      const mode = promptMode ? promptMode.value : 'n5reading';
+      const mode = promptMode ? promptMode.value : 'jukugo_reading';
       if (mode === 'mixed') {
-        const modes = ['n5reading', 'kanji', 'kana', 'english'];
+        const modes = ['jukugo_reading', 'n5reading', 'kanji', 'kana', 'english'];
         return modes[Math.floor(Math.random() * modes.length)];
       }
       return mode;
     }
 
-    let activeCardMode = 'n5reading';
+    let activeCardMode = 'jukugo_reading';
 
     function setBadgeVisual(el, status) {
       el.className = 'card-status-badge';
@@ -588,7 +602,7 @@
 
       if (!currentDeck || currentDeck.length === 0) {
         promptLabel.textContent = "INFO";
-        promptText.innerHTML = isReviewingFailures ? "No failed cards left!" : "No cards in filter";
+        promptText.innerHTML = isReviewingFailures ? "No failed cards left!" : "No compound kanji match filter";
         ansKana.textContent = "--";
         ansRomaji.textContent = "--";
         ansMeaning.textContent = "--";
@@ -608,7 +622,15 @@
       setBadgeVisual(cardStatusFront, currentStatus);
       setBadgeVisual(cardStatusBack, currentStatus);
 
-      if (activeCardMode === 'n5reading') {
+      if (activeCardMode === 'jukugo_reading') {
+        promptLabel.textContent = "COMPOUND ON'YOMI ➔ READING";
+        promptText.innerHTML = formatPromptKanji(card.k);
+        userInput.placeholder = "Type/speak reading (Romaji or Kana)...";
+      } else if (activeCardMode === 'jukugo_english') {
+        promptLabel.textContent = "COMPOUND ON'YOMI ➔ ENGLISH";
+        promptText.innerHTML = formatPromptKanji(card.k);
+        userInput.placeholder = "Type/speak English meaning...";
+      } else if (activeCardMode === 'n5reading') {
         promptLabel.textContent = "KANJI ➔ READING (ROMAJI/KANA)";
         promptText.innerHTML = formatPromptKanji(card.k || card.f);
         userInput.placeholder = "Type/speak reading...";
@@ -632,9 +654,9 @@
       lessonTag.textContent = "L" + card.l;
       updateStatsHeader();
 
-      // Handshake: audio output finishes first, then mic opens cleanly
+      // Handshake: Do not speak prompt if we are testing the reading of a compound
       if (toggleAutoSpeak && toggleAutoSpeak.checked) {
-        if (activeCardMode !== 'n5reading') {
+        if (activeCardMode !== 'jukugo_reading' && activeCardMode !== 'n5reading') {
           triggerAudioPrompt(() => {
             if (toggleAutoListen && toggleAutoListen.checked) {
               listenTimer = setTimeout(spawnVoiceSession, 350);
@@ -715,7 +737,8 @@
       const cardKey = getCardKey(card);
       let isCorrect = false;
 
-      if (activeCardMode === 'n5reading' || activeCardMode === 'english') {
+      // Checking Reading (Romaji or Kana)
+      if (activeCardMode === 'jukugo_reading' || activeCardMode === 'n5reading' || activeCardMode === 'english') {
         const cleanedRomaji = cleanStr(card.r);
         const altRomaji = cleanedRomaji.replace(/oo/g, 'ou').replace(/ee/g, 'ei');
         const cleanKana = cleanStr(card.f);
@@ -727,166 +750,11 @@
           cleanInput.replace(/ou/g, 'oo') === cleanedRomaji
         );
       } else {
+        // Checking English Meaning
         const meanings = card.e.split(/[\/,]/).map(cleanStr);
         isCorrect = meanings.some(m => m === cleanInput || (m.length > 3 && cleanInput.includes(m)));
       }
 
       if (isCorrect) {
-        destroyVoiceEngine(); // Kill mic immediately to free audio device for transition
-        correctCount++;
-        sessionHistory.set(cardKey, 'passed');
-        setBadgeVisual(cardStatusFront, 'passed');
-        setBadgeVisual(cardStatusBack, 'passed');
-
-        statusMsg.textContent = "Correct! ✓";
-        statusMsg.className = "status-msg correct";
-        updateStatsHeader();
-        if (!isFlipped) flipCard();
-
-        autoAdvanceTimer = setTimeout(() => {
-          advanceNext();
-        }, 850);
-      } else {
-        sessionHistory.set(cardKey, 'failed');
-        setBadgeVisual(cardStatusFront, 'failed');
-        setBadgeVisual(cardStatusBack, 'failed');
-
-        statusMsg.textContent = "Incorrect. Check answer & tap [Next ➔]";
-        statusMsg.className = "status-msg incorrect";
-        updateStatsHeader();
-        if (!isFlipped) flipCard();
-      }
-    }
-
-    function speakText(txt, lang, onEnd) {
-      if (!('speechSynthesis' in window)) {
-        if (onEnd) onEnd();
-        return;
-      }
-      try {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(txt);
-        u.lang = lang || 'ja-JP';
-        u.rate = 0.9;
-        if (onEnd) {
-          u.onend = onEnd;
-          u.onerror = onEnd;
-        }
-        window.speechSynthesis.speak(u);
-      } catch (err) {
-        if (onEnd) onEnd();
-      }
-    }
-
-    // --- REGENERATIVE SPEECH RECOGNITION ENGINE ---
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    function destroyVoiceEngine() {
-      if (recognition) {
-        try {
-          recognition.onstart = null;
-          recognition.onresult = null;
-          recognition.onerror = null;
-          recognition.onend = null;
-          recognition.abort();
-        } catch (e) {}
-        recognition = null;
-      }
-      isRecording = false;
-      micBtn.classList.remove('recording');
-    }
-
-    function spawnVoiceSession() {
-      if (!SpeechRec) return;
-      destroyVoiceEngine();
-
-      try {
-        const rec = new SpeechRec();
-        rec.continuous = false;
-        rec.interimResults = false;
-        rec.lang = (activeCardMode === 'n5reading' || activeCardMode === 'english') ? 'ja-JP' : 'en-US';
-
-        rec.onstart = () => {
-          isRecording = true;
-          micBtn.classList.add('recording');
-          statusMsg.textContent = "Listening...";
-          statusMsg.className = "status-msg info";
-        };
-
-        rec.onresult = (evt) => {
-          const transcript = evt.results[0][0].transcript;
-          userInput.value = transcript;
-          checkAnswer(transcript);
-        };
-
-        rec.onerror = (e) => {
-          destroyVoiceEngine();
-          // Silently recover from abort/no-speech without freezing the app
-          if (e.error === 'aborted' || e.error === 'no-speech') {
-            if (toggleAutoListen && toggleAutoListen.checked && !isFlipped) {
-              listenTimer = setTimeout(spawnVoiceSession, 400);
-            }
-            return;
-          }
-          statusMsg.textContent = "Voice error: " + (e.error || 'Retry');
-          statusMsg.className = "status-msg incorrect";
-        };
-
-        rec.onend = () => {
-          destroyVoiceEngine();
-        };
-
-        recognition = rec;
-        rec.start();
-      } catch (err) {
         destroyVoiceEngine();
-        if (toggleAutoListen && toggleAutoListen.checked && !isFlipped) {
-          listenTimer = setTimeout(spawnVoiceSession, 450);
-        }
-      }
-    }
-
-    if (cardWrap) cardWrap.onclick = flipCard;
-    if (btnFlip) btnFlip.onclick = flipCard;
-    if (btnSkip) btnSkip.onclick = skipCard;
-    if (btnNext) btnNext.onclick = advanceNext;
-
-    if (reviewFailuresBtn) {
-      reviewFailuresBtn.onclick = () => {
-        isReviewingFailures = !isReviewingFailures;
-        initDeck();
-      };
-    }
-
-    if (speakerBtn) {
-      speakerBtn.onclick = (e) => {
-        e.stopPropagation();
-        triggerAudioPrompt();
-      };
-    }
-
-    if (userInput) {
-      userInput.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          checkAnswer(userInput.value);
-        }
-      };
-    }
-
-    if (lessonFilter) lessonFilter.onchange = initDeck;
-    if (promptMode) promptMode.onchange = initDeck;
-
-    if (micBtn) {
-      micBtn.onclick = (e) => {
-        e.stopPropagation();
-        if (isRecording) {
-          destroyVoiceEngine();
-          statusMsg.textContent = "";
-        } else {
-          spawnVoiceSession();
-        }
-      };
-    }
-
-    initDeck();
-  </script>
+        correctCount++;
