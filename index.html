@@ -758,3 +758,160 @@
       if (isCorrect) {
         destroyVoiceEngine();
         correctCount++;
+        sessionHistory.set(cardKey, 'passed');
+        setBadgeVisual(cardStatusFront, 'passed');
+        setBadgeVisual(cardStatusBack, 'passed');
+
+        statusMsg.textContent = "Correct! ✓";
+        statusMsg.className = "status-msg correct";
+        updateStatsHeader();
+        if (!isFlipped) flipCard();
+
+        autoAdvanceTimer = setTimeout(() => {
+          advanceNext();
+        }, 850);
+      } else {
+        sessionHistory.set(cardKey, 'failed');
+        setBadgeVisual(cardStatusFront, 'failed');
+        setBadgeVisual(cardStatusBack, 'failed');
+
+        statusMsg.textContent = "Incorrect. Check answer & tap [Next ➔]";
+        statusMsg.className = "status-msg incorrect";
+        updateStatsHeader();
+        if (!isFlipped) flipCard();
+      }
+    }
+
+    function speakText(txt, lang, onEnd) {
+      if (!('speechSynthesis' in window)) {
+        if (onEnd) onEnd();
+        return;
+      }
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(txt);
+        u.lang = lang || 'ja-JP';
+        u.rate = 0.9;
+        if (onEnd) {
+          u.onend = onEnd;
+          u.onerror = onEnd;
+        }
+        window.speechSynthesis.speak(u);
+      } catch (err) {
+        if (onEnd) onEnd();
+      }
+    }
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function destroyVoiceEngine() {
+      if (recognition) {
+        try {
+          recognition.onstart = null;
+          recognition.onresult = null;
+          recognition.onerror = null;
+          recognition.onend = null;
+          recognition.abort();
+        } catch (e) {}
+        recognition = null;
+      }
+      isRecording = false;
+      micBtn.classList.remove('recording');
+    }
+
+    function spawnVoiceSession() {
+      if (!SpeechRec) return;
+      destroyVoiceEngine();
+
+      try {
+        const rec = new SpeechRec();
+        rec.continuous = false;
+        rec.interimResults = false;
+        const expectsJapanese = (activeCardMode === 'jukugo_reading' || activeCardMode === 'n5reading' || activeCardMode === 'english');
+        rec.lang = expectsJapanese ? 'ja-JP' : 'en-US';
+
+        rec.onstart = () => {
+          isRecording = true;
+          micBtn.classList.add('recording');
+          statusMsg.textContent = "Listening...";
+          statusMsg.className = "status-msg info";
+        };
+
+        rec.onresult = (evt) => {
+          const transcript = evt.results[0][0].transcript;
+          userInput.value = transcript;
+          checkAnswer(transcript);
+        };
+
+        rec.onerror = (e) => {
+          destroyVoiceEngine();
+          if (e.error === 'aborted' || e.error === 'no-speech') {
+            if (toggleAutoListen && toggleAutoListen.checked && !isFlipped) {
+              listenTimer = setTimeout(spawnVoiceSession, 400);
+            }
+            return;
+          }
+          statusMsg.textContent = "Voice error: " + (e.error || 'Retry');
+          statusMsg.className = "status-msg incorrect";
+        };
+
+        rec.onend = () => {
+          destroyVoiceEngine();
+        };
+
+        recognition = rec;
+        rec.start();
+      } catch (err) {
+        destroyVoiceEngine();
+        if (toggleAutoListen && toggleAutoListen.checked && !isFlipped) {
+          listenTimer = setTimeout(spawnVoiceSession, 450);
+        }
+      }
+    }
+
+    if (cardWrap) cardWrap.onclick = flipCard;
+    if (btnFlip) btnFlip.onclick = flipCard;
+    if (btnSkip) btnSkip.onclick = skipCard;
+    if (btnNext) btnNext.onclick = advanceNext;
+
+    if (reviewFailuresBtn) {
+      reviewFailuresBtn.onclick = () => {
+        isReviewingFailures = !isReviewingFailures;
+        initDeck();
+      };
+    }
+
+    if (speakerBtn) {
+      speakerBtn.onclick = (e) => {
+        e.stopPropagation();
+        triggerAudioPrompt();
+      };
+    }
+
+    if (userInput) {
+      userInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          checkAnswer(userInput.value);
+        }
+      };
+    }
+
+    if (lessonFilter) lessonFilter.onchange = initDeck;
+    if (promptMode) promptMode.onchange = initDeck;
+
+    if (micBtn) {
+      micBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (isRecording) {
+          destroyVoiceEngine();
+          statusMsg.textContent = "";
+        } else {
+          spawnVoiceSession();
+        }
+      };
+    }
+
+    initDeck();
+  </script>
+</body>
+</html>
