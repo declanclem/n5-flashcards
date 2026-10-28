@@ -72,12 +72,18 @@
       color: #fff;
     }
 
+    /* Controls Grid: Mastery Filter + Lesson Filter */
     .controls-grid {
       width: 100%;
       max-width: 440px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.15fr 0.85fr;
       gap: 8px;
+      margin-bottom: 8px;
+    }
+    .prompt-select-bar {
+      width: 100%;
+      max-width: 440px;
       margin-bottom: 8px;
     }
     select {
@@ -339,11 +345,16 @@
     </div>
   </header>
 
+  <!-- Top-level Category Filter: Mastery Status + Lesson -->
   <div class="controls-grid">
+    <select id="masteryFilter">
+      <option value="unmastered" selected>Cohort: Unmastered</option>
+      <option value="mastered">Cohort: Mastered Only</option>
+      <option value="all">Cohort: All Cards</option>
+    </select>
+
     <select id="lessonFilter">
-      <option value="unsaved" selected>Active Study Cohort (Unmastered Only)</option>
-      <option value="saved">Mastered Archive (Review Known)</option>
-      <option value="all">All Lessons (Entire Course)</option>
+      <option value="all" selected>All Lessons</option>
       <option value="1">L1: Basics</option>
       <option value="2">L2: Family & Items</option>
       <option value="3">L3: Office & Rooms</option>
@@ -360,7 +371,10 @@
       <option value="14">L14: Counters</option>
       <option value="15">L15: Health & Ability</option>
     </select>
+  </div>
 
+  <!-- Prompt Mode Bar -->
+  <div class="prompt-select-bar">
     <select id="promptMode">
       <option value="jukugo_reading" selected>Compound Onyomi (Jukugo) ➔ Reading</option>
       <option value="jukugo_english">Compound Onyomi (Jukugo) ➔ English</option>
@@ -439,8 +453,7 @@
     <button class="btn btn-next" id="btnNext">Next ➔</button>
   </div>
 
-  <!-- Cache-busting query parameter for vocab.js -->
-  <script src="vocab.js?v=2"></script>
+  <script src="vocab.js?v=3"></script>
 
   <script>
     const N5_KANJI_SET = new Set([
@@ -540,6 +553,7 @@
     const userInput = document.getElementById('userInput');
     const speakerBtn = document.getElementById('speakerBtn');
     const micBtn = document.getElementById('micBtn');
+    const masteryFilter = document.getElementById('masteryFilter');
     const lessonFilter = document.getElementById('lessonFilter');
     const promptMode = document.getElementById('promptMode');
     const btnMastered = document.getElementById('btnMastered');
@@ -596,17 +610,23 @@
         reviewFailuresBtn.classList.add('active');
       } else {
         reviewFailuresBtn.classList.remove('active');
-        const selectedCohort = lessonFilter ? lessonFilter.value : 'unsaved';
-
-        if (selectedCohort === 'unsaved') {
+        
+        // 1. Filter by Mastery Status (Top Level)
+        const selectedMastery = masteryFilter ? masteryFilter.value : 'unmastered';
+        if (selectedMastery === 'unmastered') {
           filtered = filtered.filter(item => !masteredCardsSet.has(getCardKey(item)));
-        } else if (selectedCohort === 'saved') {
+        } else if (selectedMastery === 'mastered') {
           filtered = filtered.filter(item => masteredCardsSet.has(getCardKey(item)));
-        } else if (selectedCohort !== 'all') {
-          const num = parseInt(selectedCohort, 10);
+        }
+
+        // 2. Filter by Lesson
+        const selectedLesson = lessonFilter ? lessonFilter.value : 'all';
+        if (selectedLesson !== 'all') {
+          const num = parseInt(selectedLesson, 10);
           filtered = filtered.filter(item => item.l === num);
         }
 
+        // 3. Filter by Prompt / Word Type
         const activeModeVal = promptMode ? promptMode.value : 'jukugo_reading';
         if (activeModeVal === 'jukugo_reading' || activeModeVal === 'jukugo_english') {
           filtered = filtered.filter(item => isJukugoWord(item));
@@ -670,7 +690,7 @@
         masteredCardsSet.delete(key);
         persistMasteredSet(masteredCardsSet);
         updateMasteredButtonVisual(false);
-        statusMsg.textContent = "Moved back to active cohort.";
+        statusMsg.textContent = "Moved back to unmastered cohort.";
         statusMsg.className = "status-msg info";
       } else {
         masteredCardsSet.add(key);
@@ -691,9 +711,9 @@
 
       if (!currentDeck || currentDeck.length === 0) {
         promptLabel.textContent = "INFO";
-        if (lessonFilter.value === 'saved') {
-          promptText.innerHTML = "No mastered cards yet.<br><span style='font-size:1rem;color:var(--text-muted);'>Tag cards with ★ Mastered to review them here.</span>";
-        } else if (lessonFilter.value === 'unsaved') {
+        if (masteryFilter.value === 'mastered') {
+          promptText.innerHTML = "No mastered cards here.<br><span style='font-size:1rem;color:var(--text-muted);'>Tag cards with ★ Mastered to see them here.</span>";
+        } else if (masteryFilter.value === 'unmastered') {
           promptText.innerHTML = "All caught up! 🎉<br><span style='font-size:1rem;color:var(--text-muted);'>No unmastered cards remaining in this filter.</span>";
         } else {
           promptText.innerHTML = "No cards match filter";
@@ -1008,6 +1028,7 @@
       };
     }
 
+    if (masteryFilter) masteryFilter.onchange = initDeck;
     if (lessonFilter) lessonFilter.onchange = initDeck;
     if (promptMode) promptMode.onchange = initDeck;
 
