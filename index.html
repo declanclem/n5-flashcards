@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>JLPT N5 Rapid Flashcards</title>
   <style>
     :root {
@@ -10,6 +13,7 @@
       --card-bg: #1e293b;
       --accent: #38bdf8;
       --kanji-target: #f87171;
+      --mastered-gold: #f59e0b;
       --success: #22c55e;
       --danger: #ef4444;
       --text-main: #f8fafc;
@@ -162,11 +166,16 @@
       color: var(--text-muted);
     }
 
+    .card-badges-container {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
     .card-status-badge {
       font-weight: 700;
       padding: 2px 7px;
       border-radius: 999px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       display: inline-flex;
       align-items: center;
       gap: 3px;
@@ -184,6 +193,12 @@
       background: rgba(239, 68, 68, 0.2);
       color: var(--danger);
       border: 1px solid var(--danger);
+    }
+    .status-mastered {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--mastered-gold);
+      border: 1px solid var(--mastered-gold);
+      display: none;
     }
 
     .prompt-text {
@@ -284,21 +299,30 @@
       width: 100%;
       max-width: 440px;
       display: grid;
-      grid-template-columns: 1fr 1fr 1.2fr;
-      gap: 8px;
+      grid-template-columns: 1.1fr 0.85fr 1fr 1.15fr;
+      gap: 6px;
       margin-bottom: 12px;
     }
     .btn {
-      padding: 12px 8px;
+      padding: 12px 4px;
       border-radius: 10px;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
+    }
+    .btn-mastered {
+      background: #854d0e;
+      color: #fef08a;
+      border: 1px solid var(--mastered-gold);
+    }
+    .btn-mastered.is-mastered {
+      background: var(--mastered-gold);
+      color: #000;
     }
     .btn-skip { background: #475569; }
     .btn-flip { background: #3b82f6; }
@@ -317,7 +341,9 @@
 
   <div class="controls-grid">
     <select id="lessonFilter">
-      <option value="all">All Lessons</option>
+      <option value="unsaved" selected>Active Study Cohort (Unmastered Only)</option>
+      <option value="saved">Mastered Archive (Review Known)</option>
+      <option value="all">All Lessons (Entire Course)</option>
       <option value="1">L1: Basics</option>
       <option value="2">L2: Family & Items</option>
       <option value="3">L3: Office & Rooms</option>
@@ -339,9 +365,9 @@
       <option value="jukugo_reading" selected>Compound Onyomi (Jukugo) ➔ Reading</option>
       <option value="jukugo_english">Compound Onyomi (Jukugo) ➔ English</option>
       <option value="n5reading">All N5 Kanji ➔ Reading</option>
-      <option value="kanji">All Kanji/Kana ➔ English (677)</option>
-      <option value="kana">Furigana ➔ English (677)</option>
-      <option value="english">English ➔ Japanese (677)</option>
+      <option value="kanji">All Kanji/Kana ➔ English</option>
+      <option value="kana">Furigana ➔ English</option>
+      <option value="english">English ➔ Japanese</option>
       <option value="mixed">Mixed Drill</option>
     </select>
   </div>
@@ -362,7 +388,8 @@
       <div class="card-front">
         <div class="card-meta">
           <span id="promptLabel">KANJI</span>
-          <div style="display:flex; gap:8px; align-items:center;">
+          <div class="card-badges-container">
+            <span class="card-status-badge status-mastered" id="cardMasteredFront">★ Mastered</span>
             <span class="card-status-badge status-unseen" id="cardStatusFront">Unseen</span>
             <button class="icon-btn" id="speakerBtn" style="padding:4px 8px; font-size:1rem;" title="Listen">🔊</button>
           </div>
@@ -373,7 +400,8 @@
       <div class="card-back">
         <div class="card-meta">
           <span>ANSWER</span>
-          <div style="display:flex; gap:8px; align-items:center;">
+          <div class="card-badges-container">
+            <span class="card-status-badge status-mastered" id="cardMasteredBack">★ Mastered</span>
             <span class="card-status-badge status-unseen" id="cardStatusBack">Unseen</span>
             <span id="lessonTag" style="color:var(--accent);">L1</span>
           </div>
@@ -405,12 +433,14 @@
   </div>
 
   <div class="action-grid">
+    <button class="btn btn-mastered" id="btnMastered">★ Mastered</button>
     <button class="btn btn-skip" id="btnSkip">↷ Skip</button>
     <button class="btn btn-flip" id="btnFlip">↻ Flip</button>
     <button class="btn btn-next" id="btnNext">Next ➔</button>
   </div>
 
-  <script src="vocab.js"></script>
+  <!-- Cache-busting query parameter for vocab.js -->
+  <script src="vocab.js?v=2"></script>
 
   <script>
     const N5_KANJI_SET = new Set([
@@ -439,7 +469,6 @@
       return hasKanji;
     }
 
-    // Compound On'yomi (Jukugo) Detector: 2+ characters, all Kanji, all N5
     function isJukugoWord(card) {
       if (!card || !card.k) return false;
       const k = card.k.trim();
@@ -472,12 +501,27 @@
     let isRecording = false;
     let listenTimer = null;
 
+    const STORAGE_KEY_MASTERED = "n5_mastered_vocab_keys";
+    function loadMasteredSet() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_MASTERED);
+        return raw ? new Set(JSON.parse(raw)) : new Set();
+      } catch (e) {
+        return new Set();
+      }
+    }
+    function persistMasteredSet(set) {
+      try {
+        localStorage.setItem(STORAGE_KEY_MASTERED, JSON.stringify(Array.from(set)));
+      } catch (e) {}
+    }
+    const masteredCardsSet = loadMasteredSet();
+
     const sessionHistory = new Map();
     let isReviewingFailures = false;
 
     let totalAttempts = 0;
     let correctCount = 0;
-    let autoAdvanceTimer = null;
 
     const cardWrap = document.getElementById('cardWrap');
     const cardInner = document.getElementById('cardInner');
@@ -485,6 +529,8 @@
     const promptLabel = document.getElementById('promptLabel');
     const cardStatusFront = document.getElementById('cardStatusFront');
     const cardStatusBack = document.getElementById('cardStatusBack');
+    const cardMasteredFront = document.getElementById('cardMasteredFront');
+    const cardMasteredBack = document.getElementById('cardMasteredBack');
     const ansKana = document.getElementById('ansKana');
     const ansRomaji = document.getElementById('ansRomaji');
     const ansMeaning = document.getElementById('ansMeaning');
@@ -496,6 +542,7 @@
     const micBtn = document.getElementById('micBtn');
     const lessonFilter = document.getElementById('lessonFilter');
     const promptMode = document.getElementById('promptMode');
+    const btnMastered = document.getElementById('btnMastered');
     const btnSkip = document.getElementById('btnSkip');
     const btnFlip = document.getElementById('btnFlip');
     const btnNext = document.getElementById('btnNext');
@@ -533,7 +580,6 @@
 
     function initDeck() {
       destroyVoiceEngine();
-      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
       if (listenTimer) clearTimeout(listenTimer);
 
       const data = window.VOCAB_DATA;
@@ -550,9 +596,14 @@
         reviewFailuresBtn.classList.add('active');
       } else {
         reviewFailuresBtn.classList.remove('active');
-        const selectedLesson = lessonFilter ? lessonFilter.value : 'all';
-        if (selectedLesson !== 'all') {
-          const num = parseInt(selectedLesson, 10);
+        const selectedCohort = lessonFilter ? lessonFilter.value : 'unsaved';
+
+        if (selectedCohort === 'unsaved') {
+          filtered = filtered.filter(item => !masteredCardsSet.has(getCardKey(item)));
+        } else if (selectedCohort === 'saved') {
+          filtered = filtered.filter(item => masteredCardsSet.has(getCardKey(item)));
+        } else if (selectedCohort !== 'all') {
+          const num = parseInt(selectedCohort, 10);
           filtered = filtered.filter(item => item.l === num);
         }
 
@@ -595,17 +646,62 @@
       }
     }
 
+    function updateMasteredButtonVisual(isMastered) {
+      if (isMastered) {
+        btnMastered.classList.add('is-mastered');
+        btnMastered.textContent = '★ Mastered';
+        cardMasteredFront.style.display = 'inline-flex';
+        cardMasteredBack.style.display = 'inline-flex';
+      } else {
+        btnMastered.classList.remove('is-mastered');
+        btnMastered.textContent = '☆ Mastered';
+        cardMasteredFront.style.display = 'none';
+        cardMasteredBack.style.display = 'none';
+      }
+    }
+
+    function toggleMasteredCurrentCard() {
+      if (!currentDeck || currentDeck.length === 0) return;
+      const card = currentDeck[currentIndex];
+      const key = getCardKey(card);
+      const isCurrentlyMastered = masteredCardsSet.has(key);
+
+      if (isCurrentlyMastered) {
+        masteredCardsSet.delete(key);
+        persistMasteredSet(masteredCardsSet);
+        updateMasteredButtonVisual(false);
+        statusMsg.textContent = "Moved back to active cohort.";
+        statusMsg.className = "status-msg info";
+      } else {
+        masteredCardsSet.add(key);
+        persistMasteredSet(masteredCardsSet);
+        updateMasteredButtonVisual(true);
+        statusMsg.textContent = "Mastered! ★ Advancing...";
+        statusMsg.className = "status-msg correct";
+
+        setTimeout(() => {
+          advanceNext();
+        }, 400);
+      }
+    }
+
     function loadCard() {
       destroyVoiceEngine();
-      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
       if (listenTimer) clearTimeout(listenTimer);
 
       if (!currentDeck || currentDeck.length === 0) {
         promptLabel.textContent = "INFO";
-        promptText.innerHTML = isReviewingFailures ? "No failed cards left!" : "No compound kanji match filter";
+        if (lessonFilter.value === 'saved') {
+          promptText.innerHTML = "No mastered cards yet.<br><span style='font-size:1rem;color:var(--text-muted);'>Tag cards with ★ Mastered to review them here.</span>";
+        } else if (lessonFilter.value === 'unsaved') {
+          promptText.innerHTML = "All caught up! 🎉<br><span style='font-size:1rem;color:var(--text-muted);'>No unmastered cards remaining in this filter.</span>";
+        } else {
+          promptText.innerHTML = "No cards match filter";
+        }
         ansKana.textContent = "--";
         ansRomaji.textContent = "--";
         ansMeaning.textContent = "--";
+        updateMasteredButtonVisual(false);
         updateStatsHeader();
         return;
       }
@@ -621,6 +717,9 @@
       const currentStatus = sessionHistory.get(getCardKey(card)) || 'unseen';
       setBadgeVisual(cardStatusFront, currentStatus);
       setBadgeVisual(cardStatusBack, currentStatus);
+
+      const isMastered = masteredCardsSet.has(getCardKey(card));
+      updateMasteredButtonVisual(isMastered);
 
       if (activeCardMode === 'jukugo_reading') {
         promptLabel.textContent = "COMPOUND ON'YOMI ➔ READING";
@@ -654,7 +753,6 @@
       lessonTag.textContent = "L" + card.l;
       updateStatsHeader();
 
-      // Handshake: Do not speak prompt if we are testing the reading of a compound
       if (toggleAutoSpeak && toggleAutoSpeak.checked) {
         if (activeCardMode !== 'jukugo_reading' && activeCardMode !== 'n5reading') {
           triggerAudioPrompt(() => {
@@ -693,14 +791,13 @@
 
     function advanceNext() {
       destroyVoiceEngine();
-      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
       if (listenTimer) clearTimeout(listenTimer);
 
       if (currentIndex < currentDeck.length - 1) {
         currentIndex++;
         loadCard();
       } else {
-        statusMsg.textContent = "Deck finished! Reshuffling...";
+        statusMsg.textContent = "Cohort review complete! Reshuffling...";
         statusMsg.className = "status-msg info";
         setTimeout(initDeck, 1200);
       }
@@ -723,7 +820,6 @@
 
     function checkAnswer(val) {
       if (!val || !val.trim() || !currentDeck.length) return;
-      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
       
       const cleanInput = cleanStr(val);
 
@@ -737,7 +833,6 @@
       const cardKey = getCardKey(card);
       let isCorrect = false;
 
-      // Checking Reading (Romaji or Kana)
       if (activeCardMode === 'jukugo_reading' || activeCardMode === 'n5reading' || activeCardMode === 'english') {
         const cleanedRomaji = cleanStr(card.r);
         const altRomaji = cleanedRomaji.replace(/oo/g, 'ou').replace(/ee/g, 'ei');
@@ -750,7 +845,6 @@
           cleanInput.replace(/ou/g, 'oo') === cleanedRomaji
         );
       } else {
-        // Checking English Meaning
         const meanings = card.e.split(/[\/,]/).map(cleanStr);
         isCorrect = meanings.some(m => m === cleanInput || (m.length > 3 && cleanInput.includes(m)));
       }
@@ -762,25 +856,24 @@
         setBadgeVisual(cardStatusFront, 'passed');
         setBadgeVisual(cardStatusBack, 'passed');
 
-        statusMsg.textContent = "Correct! ✓";
+        statusMsg.textContent = "Correct! ✓ Tap [★ Mastered] to retire, or [Next ➔] to keep drilling.";
         statusMsg.className = "status-msg correct";
         updateStatsHeader();
         if (!isFlipped) flipCard();
-
-        autoAdvanceTimer = setTimeout(() => {
-          advanceNext();
-        }, 850);
       } else {
         sessionHistory.set(cardKey, 'failed');
         setBadgeVisual(cardStatusFront, 'failed');
         setBadgeVisual(cardStatusBack, 'failed');
 
-        statusMsg.textContent = "Incorrect. Check answer & tap [Next ➔]";
+        statusMsg.textContent = "Incorrect. Review card & tap [Next ➔]";
         statusMsg.className = "status-msg incorrect";
         updateStatsHeader();
         if (!isFlipped) flipCard();
       }
     }
+
+    window._currentUtterance = null;
+    let synthTimeout = null;
 
     function speakText(txt, lang, onEnd) {
       if (!('speechSynthesis' in window)) {
@@ -788,14 +881,32 @@
         return;
       }
       try {
+        if (synthTimeout) clearTimeout(synthTimeout);
+
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
         window.speechSynthesis.cancel();
+
         const u = new SpeechSynthesisUtterance(txt);
         u.lang = lang || 'ja-JP';
         u.rate = 0.9;
-        if (onEnd) {
-          u.onend = onEnd;
-          u.onerror = onEnd;
+        window._currentUtterance = u;
+
+        let hasFinished = false;
+        function finish() {
+          if (!hasFinished) {
+            hasFinished = true;
+            window._currentUtterance = null;
+            if (synthTimeout) clearTimeout(synthTimeout);
+            if (onEnd) onEnd();
+          }
         }
+
+        u.onend = finish;
+        u.onerror = finish;
+        synthTimeout = setTimeout(finish, 2800);
+
         window.speechSynthesis.speak(u);
       } catch (err) {
         if (onEnd) onEnd();
@@ -873,6 +984,7 @@
     if (btnFlip) btnFlip.onclick = flipCard;
     if (btnSkip) btnSkip.onclick = skipCard;
     if (btnNext) btnNext.onclick = advanceNext;
+    if (btnMastered) btnMastered.onclick = toggleMasteredCurrentCard;
 
     if (reviewFailuresBtn) {
       reviewFailuresBtn.onclick = () => {
