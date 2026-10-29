@@ -370,8 +370,8 @@
     </select>
 
     <select id="lessonFilter">
-      <option value="verbs" selected>★ Core Verbs Only (74 Actions)</option>
-      <option value="all">All Lessons (1–15)</option>
+      <option value="verbs">★ Core Verbs Only (74 Actions)</option>
+      <option value="all" selected>All Lessons (1–15)</option>
       <option value="1">L1: Basics</option>
       <option value="2">L2: Family & Items</option>
       <option value="3">L3: Office & Rooms</option>
@@ -392,8 +392,10 @@
 
   <div class="prompt-select-bar">
     <select id="promptMode">
-      <option value="kanji" selected>Kanji / Kana ➔ English</option>
-      <option value="reading">Kanji ➔ Reading (Romaji/Kana)</option>
+      <option value="kana" selected>Furigana ➔ English Meaning</option>
+      <option value="kanji">Kanji / Kana ➔ English Meaning</option>
+      <option value="n5reading">Strict N5 Kanji ➔ Reading (153 words)</option>
+      <option value="reading">All Kanji ➔ Reading (Romaji/Kana)</option>
       <option value="jukugo_reading">Compound Onyomi (Jukugo) ➔ Reading</option>
       <option value="jukugo_english">Compound Onyomi (Jukugo) ➔ English</option>
       <option value="english">English ➔ Japanese Reading</option>
@@ -470,7 +472,7 @@
     <button class="btn btn-next" id="btnNext">Next ➔</button>
   </div>
 
-  <script src="vocab.js?v=5"></script>
+  <script src="vocab.js?v=7"></script>
 
   <script>
     const VERB_DICTIONARY = {
@@ -591,6 +593,18 @@
 
     function isKanjiChar(ch) {
       return /[\u4e00-\u9faf]/.test(ch);
+    }
+
+    function isStrictN5KanjiWord(word) {
+      if (!word) return false;
+      let hasKanji = false;
+      for (const ch of word) {
+        if (isKanjiChar(ch)) {
+          hasKanji = true;
+          if (!N5_KANJI_SET.has(ch)) return false;
+        }
+      }
+      return hasKanji;
     }
 
     function isJukugoWord(card) {
@@ -734,7 +748,7 @@
         }
 
         // 2. Lesson / Category Filter
-        const selectedLesson = lessonFilter ? lessonFilter.value : 'verbs';
+        const selectedLesson = lessonFilter ? lessonFilter.value : 'all';
         if (selectedLesson === 'verbs') {
           filtered = filtered.filter(item => isVerbEntry(item));
         } else if (selectedLesson !== 'all') {
@@ -742,9 +756,13 @@
           filtered = filtered.filter(item => item.l === num);
         }
 
-        // 3. Prompt Mode Sub-filter (for Compound Onyomi)
-        const activeModeVal = promptMode ? promptMode.value : 'kanji';
-        if (activeModeVal === 'jukugo_reading' || activeModeVal === 'jukugo_english') {
+        // 3. Prompt Mode Sub-filters
+        const activeModeVal = promptMode ? promptMode.value : 'kana';
+        if (activeModeVal === 'n5reading') {
+          filtered = filtered.filter(item => isStrictN5KanjiWord(item.k));
+        } else if (activeModeVal === 'reading') {
+          filtered = filtered.filter(item => isKanjiChar(item.k || ""));
+        } else if (activeModeVal === 'jukugo_reading' || activeModeVal === 'jukugo_english') {
           filtered = filtered.filter(item => isJukugoWord(item));
         }
       }
@@ -832,7 +850,7 @@
       userInput.value = "";
 
       const card = currentDeck[currentIndex];
-      const activeCardMode = promptMode ? promptMode.value : 'kanji';
+      const activeCardMode = promptMode ? promptMode.value : 'kana';
 
       const cleanF = (card.f || "").replace(/[^ぁ-ん]/g, "");
       const verbData = VERB_DICTIONARY[cleanF];
@@ -857,8 +875,15 @@
       const isMastered = masteredCardsSet.has(getCardKey(card));
       updateMasteredButtonVisual(isMastered);
 
-      // Unambiguous label and input directions for each of the 5 modes
-      if (activeCardMode === 'reading') {
+      if (activeCardMode === 'kana') {
+        promptLabel.textContent = "FURIGANA ➔ ENGLISH MEANING";
+        promptText.textContent = card.f;
+        userInput.placeholder = "Type/speak English meaning...";
+      } else if (activeCardMode === 'n5reading') {
+        promptLabel.textContent = "STRICT N5 KANJI ➔ READING (ROMAJI/KANA)";
+        promptText.innerHTML = formatPromptKanji(card.k || card.f);
+        userInput.placeholder = "Type/speak reading (Romaji or Kana)...";
+      } else if (activeCardMode === 'reading') {
         promptLabel.textContent = isVerbEntry(card) ? "VERB ➔ READING (ROMAJI/KANA)" : "KANJI ➔ READING (ROMAJI/KANA)";
         promptText.innerHTML = formatPromptKanji(card.k || card.f);
         userInput.placeholder = "Type/speak reading (Romaji or Kana)...";
@@ -887,7 +912,7 @@
       updateStatsHeader();
 
       if (toggleAutoSpeak && toggleAutoSpeak.checked) {
-        if (activeCardMode !== 'reading' && activeCardMode !== 'jukugo_reading') {
+        if (activeCardMode !== 'reading' && activeCardMode !== 'n5reading' && activeCardMode !== 'jukugo_reading') {
           triggerAudioPrompt(() => {
             if (toggleAutoListen && toggleAutoListen.checked) {
               listenTimer = setTimeout(spawnVoiceSession, 350);
@@ -905,7 +930,7 @@
     function triggerAudioPrompt(onDoneCallback) {
       if (!currentDeck.length) return;
       const card = currentDeck[currentIndex];
-      const activeCardMode = promptMode ? promptMode.value : 'kanji';
+      const activeCardMode = promptMode ? promptMode.value : 'kana';
       if (activeCardMode === 'english') {
         speakText(card.e.split('/')[0], 'en-US', onDoneCallback);
       } else {
@@ -965,10 +990,10 @@
       totalAttempts++;
       const card = currentDeck[currentIndex];
       const cardKey = getCardKey(card);
-      const activeCardMode = promptMode ? promptMode.value : 'kanji';
+      const activeCardMode = promptMode ? promptMode.value : 'kana';
       let isCorrect = false;
 
-      if (activeCardMode === 'reading' || activeCardMode === 'jukugo_reading' || activeCardMode === 'english') {
+      if (activeCardMode === 'reading' || activeCardMode === 'n5reading' || activeCardMode === 'jukugo_reading' || activeCardMode === 'english') {
         const cleanedRomaji = cleanStr(card.r);
         const altRomaji = cleanedRomaji.replace(/oo/g, 'ou').replace(/ee/g, 'ei');
         const cleanKana = cleanStr(card.f);
@@ -1073,8 +1098,8 @@
         const rec = new SpeechRec();
         rec.continuous = false;
         rec.interimResults = false;
-        const activeCardMode = promptMode ? promptMode.value : 'kanji';
-        const expectsJapanese = (activeCardMode === 'reading' || activeCardMode === 'jukugo_reading' || activeCardMode === 'english');
+        const activeCardMode = promptMode ? promptMode.value : 'kana';
+        const expectsJapanese = (activeCardMode === 'reading' || activeCardMode === 'n5reading' || activeCardMode === 'jukugo_reading' || activeCardMode === 'english');
         rec.lang = expectsJapanese ? 'ja-JP' : 'en-US';
 
         rec.onstart = () => {
