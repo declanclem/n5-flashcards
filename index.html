@@ -206,7 +206,6 @@
       display: none;
     }
 
-    /* Action Icon / Illustration Badge */
     .action-icon-badge {
       font-size: 2.3rem;
       line-height: 1;
@@ -256,11 +255,6 @@
       text-align: center;
       line-height: 1.25;
       margin-top: 4px;
-    }
-    .mnemonic-keyword {
-      font-weight: 700;
-      color: #38bdf8;
-      text-decoration: underline;
     }
     .tap-hint {
       text-align: center;
@@ -398,12 +392,11 @@
 
   <div class="prompt-select-bar">
     <select id="promptMode">
-      <option value="kanji">Kanji / Kana ➔ English</option>
+      <option value="kanji" selected>Kanji / Kana ➔ English</option>
       <option value="reading">Kanji ➔ Reading (Romaji/Kana)</option>
       <option value="jukugo_reading">Compound Onyomi (Jukugo) ➔ Reading</option>
       <option value="jukugo_english">Compound Onyomi (Jukugo) ➔ English</option>
       <option value="english">English ➔ Japanese Reading</option>
-      <option value="mixed">Mixed Drill</option>
     </select>
   </div>
 
@@ -422,7 +415,7 @@
     <div class="card-inner" id="cardInner">
       <div class="card-front">
         <div class="card-meta">
-          <span id="promptLabel">VERB ACTION</span>
+          <span id="promptLabel">PROMPT</span>
           <div class="card-badges-container">
             <span class="card-status-badge status-mastered" id="cardMasteredFront">★ Mastered</span>
             <span class="card-status-badge status-unseen" id="cardStatusFront">Unseen</span>
@@ -435,7 +428,7 @@
       </div>
       <div class="card-back">
         <div class="card-meta">
-          <span>ANSWER & MNEMONIC</span>
+          <span>ANSWER & BREAKDOWN</span>
           <div class="card-badges-container">
             <span class="card-status-badge status-mastered" id="cardMasteredBack">★ Mastered</span>
             <span class="card-status-badge status-unseen" id="cardStatusBack">Unseen</span>
@@ -477,10 +470,9 @@
     <button class="btn btn-next" id="btnNext">Next ➔</button>
   </div>
 
-  <script src="vocab.js?v=4"></script>
+  <script src="vocab.js?v=5"></script>
 
   <script>
-    // Built-in Verb Action Graphics & Vivid Phonetic Mnemonics Database
     const VERB_DICTIONARY = {
       "いく": { icon: "🚶", m: "I go to **Iku**-za to *go* walking." },
       "くる": { icon: "🏃‍♂️", m: "A **crew** comes over: *kuru* means *to come*." },
@@ -599,18 +591,6 @@
 
     function isKanjiChar(ch) {
       return /[\u4e00-\u9faf]/.test(ch);
-    }
-
-    function isStrictN5KanjiWord(word) {
-      if (!word) return false;
-      let hasKanji = false;
-      for (const ch of word) {
-        if (isKanjiChar(ch)) {
-          hasKanji = true;
-          if (!N5_KANJI_SET.has(ch)) return false;
-        }
-      }
-      return hasKanji;
     }
 
     function isJukugoWord(card) {
@@ -745,7 +725,7 @@
       } else {
         reviewFailuresBtn.classList.remove('active');
         
-        // 1. Filter by Mastery Status
+        // 1. Mastery Status Filter
         const selectedMastery = masteryFilter ? masteryFilter.value : 'unmastered';
         if (selectedMastery === 'unmastered') {
           filtered = filtered.filter(item => !masteredCardsSet.has(getCardKey(item)));
@@ -753,7 +733,7 @@
           filtered = filtered.filter(item => masteredCardsSet.has(getCardKey(item)));
         }
 
-        // 2. Filter by Lesson or Verb Category
+        // 2. Lesson / Category Filter
         const selectedLesson = lessonFilter ? lessonFilter.value : 'verbs';
         if (selectedLesson === 'verbs') {
           filtered = filtered.filter(item => isVerbEntry(item));
@@ -762,7 +742,7 @@
           filtered = filtered.filter(item => item.l === num);
         }
 
-        // 3. Filter by Prompt Mode
+        // 3. Prompt Mode Sub-filter (for Compound Onyomi)
         const activeModeVal = promptMode ? promptMode.value : 'kanji';
         if (activeModeVal === 'jukugo_reading' || activeModeVal === 'jukugo_english') {
           filtered = filtered.filter(item => isJukugoWord(item));
@@ -774,12 +754,6 @@
       currentIndex = 0;
       loadCard();
     }
-
-    function getActiveMode() {
-      return promptMode ? promptMode.value : 'kanji';
-    }
-
-    let activeCardMode = 'kanji';
 
     function setBadgeVisual(el, status) {
       el.className = 'card-status-badge';
@@ -819,7 +793,7 @@
         masteredCardsSet.delete(key);
         persistMasteredSet(masteredCardsSet);
         updateMasteredButtonVisual(false);
-        statusMsg.textContent = "Moved back to active cohort.";
+        statusMsg.textContent = "Moved back to unmastered cohort.";
         statusMsg.className = "status-msg info";
       } else {
         masteredCardsSet.add(key);
@@ -858,9 +832,8 @@
       userInput.value = "";
 
       const card = currentDeck[currentIndex];
-      activeCardMode = getActiveMode();
+      const activeCardMode = promptMode ? promptMode.value : 'kanji';
 
-      // Retrieve Visual Cue & Mnemonic Data
       const cleanF = (card.f || "").replace(/[^ぁ-ん]/g, "");
       const verbData = VERB_DICTIONARY[cleanF];
 
@@ -884,28 +857,25 @@
       const isMastered = masteredCardsSet.has(getCardKey(card));
       updateMasteredButtonVisual(isMastered);
 
+      // Unambiguous label and input directions for each of the 5 modes
       if (activeCardMode === 'reading') {
-        promptLabel.textContent = isVerbEntry(card) ? "VERB ➔ READING" : "KANJI ➔ READING";
+        promptLabel.textContent = isVerbEntry(card) ? "VERB ➔ READING (ROMAJI/KANA)" : "KANJI ➔ READING (ROMAJI/KANA)";
         promptText.innerHTML = formatPromptKanji(card.k || card.f);
         userInput.placeholder = "Type/speak reading (Romaji or Kana)...";
       } else if (activeCardMode === 'jukugo_reading') {
-        promptLabel.textContent = "COMPOUND ON'YOMI ➔ READING";
+        promptLabel.textContent = "COMPOUND ON'YOMI ➔ READING (ROMAJI/KANA)";
         promptText.innerHTML = formatPromptKanji(card.k);
-        userInput.placeholder = "Type/speak reading...";
+        userInput.placeholder = "Type/speak reading (Romaji or Kana)...";
       } else if (activeCardMode === 'jukugo_english') {
-        promptLabel.textContent = "COMPOUND ON'YOMI ➔ ENGLISH";
+        promptLabel.textContent = "COMPOUND ON'YOMI ➔ ENGLISH MEANING";
         promptText.innerHTML = formatPromptKanji(card.k);
         userInput.placeholder = "Type/speak English meaning...";
-      } else if (activeCardMode === 'kana') {
-        promptLabel.textContent = "FURIGANA ➔ ENGLISH";
-        promptText.textContent = card.f;
-        userInput.placeholder = "Type/speak English...";
       } else if (activeCardMode === 'english') {
-        promptLabel.textContent = "ENGLISH ➔ JAPANESE";
+        promptLabel.textContent = "ENGLISH ➔ JAPANESE READING";
         promptText.textContent = card.e.split('/')[0].trim();
         userInput.placeholder = "Type/speak Japanese reading...";
       } else {
-        promptLabel.textContent = isVerbEntry(card) ? "VERB ➔ ENGLISH" : "KANJI / KANA ➔ ENGLISH";
+        promptLabel.textContent = isVerbEntry(card) ? "VERB ➔ ENGLISH MEANING" : "KANJI / KANA ➔ ENGLISH MEANING";
         promptText.innerHTML = formatPromptKanji(card.k || card.f);
         userInput.placeholder = "Type/speak English meaning...";
       }
@@ -935,6 +905,7 @@
     function triggerAudioPrompt(onDoneCallback) {
       if (!currentDeck.length) return;
       const card = currentDeck[currentIndex];
+      const activeCardMode = promptMode ? promptMode.value : 'kanji';
       if (activeCardMode === 'english') {
         speakText(card.e.split('/')[0], 'en-US', onDoneCallback);
       } else {
@@ -994,6 +965,7 @@
       totalAttempts++;
       const card = currentDeck[currentIndex];
       const cardKey = getCardKey(card);
+      const activeCardMode = promptMode ? promptMode.value : 'kanji';
       let isCorrect = false;
 
       if (activeCardMode === 'reading' || activeCardMode === 'jukugo_reading' || activeCardMode === 'english') {
@@ -1101,6 +1073,7 @@
         const rec = new SpeechRec();
         rec.continuous = false;
         rec.interimResults = false;
+        const activeCardMode = promptMode ? promptMode.value : 'kanji';
         const expectsJapanese = (activeCardMode === 'reading' || activeCardMode === 'jukugo_reading' || activeCardMode === 'english');
         rec.lang = expectsJapanese ? 'ja-JP' : 'en-US';
 
