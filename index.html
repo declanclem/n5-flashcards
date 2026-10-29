@@ -72,7 +72,6 @@
       color: #fff;
     }
 
-    /* Controls Grid: Mastery Filter + Lesson Filter */
     .controls-grid {
       width: 100%;
       max-width: 440px;
@@ -128,7 +127,7 @@
     .card-wrap {
       width: 100%;
       max-width: 440px;
-      height: 240px;
+      height: 255px;
       perspective: 1000px;
       cursor: pointer;
       margin-bottom: 12px;
@@ -157,7 +156,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 16px;
+      padding: 14px 16px;
     }
     .card-back {
       transform: rotateY(180deg);
@@ -207,9 +206,18 @@
       display: none;
     }
 
+    /* Action Icon / Illustration Badge */
+    .action-icon-badge {
+      font-size: 2.3rem;
+      line-height: 1;
+      text-align: center;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+      margin-bottom: 2px;
+    }
+
     .prompt-text {
       text-align: center;
-      font-size: 2.2rem;
+      font-size: 2.1rem;
       font-weight: 700;
       letter-spacing: 0.05em;
       margin: auto 0;
@@ -221,23 +229,38 @@
       font-weight: 800;
     }
     .answer-kana {
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       color: var(--accent);
       font-weight: 600;
       text-align: center;
     }
     .answer-romaji {
-      font-size: 1.05rem;
+      font-size: 1rem;
       color: #cbd5e1;
       text-align: center;
       font-style: italic;
     }
     .answer-meaning {
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       color: #f1f5f9;
       font-weight: 600;
       text-align: center;
+    }
+    .mnemonic-box {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px dashed rgba(56, 189, 248, 0.3);
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 0.75rem;
+      color: #bae6fd;
+      text-align: center;
+      line-height: 1.25;
       margin-top: 4px;
+    }
+    .mnemonic-keyword {
+      font-weight: 700;
+      color: #38bdf8;
+      text-decoration: underline;
     }
     .tap-hint {
       text-align: center;
@@ -345,7 +368,6 @@
     </div>
   </header>
 
-  <!-- Top-level Category Filter: Mastery Status + Lesson -->
   <div class="controls-grid">
     <select id="masteryFilter">
       <option value="unmastered" selected>Cohort: Unmastered</option>
@@ -354,7 +376,8 @@
     </select>
 
     <select id="lessonFilter">
-      <option value="all" selected>All Lessons</option>
+      <option value="verbs" selected>★ Core Verbs Only (74 Actions)</option>
+      <option value="all">All Lessons (1–15)</option>
       <option value="1">L1: Basics</option>
       <option value="2">L2: Family & Items</option>
       <option value="3">L3: Office & Rooms</option>
@@ -373,15 +396,13 @@
     </select>
   </div>
 
-  <!-- Prompt Mode Bar -->
   <div class="prompt-select-bar">
     <select id="promptMode">
-      <option value="jukugo_reading" selected>Compound Onyomi (Jukugo) ➔ Reading</option>
+      <option value="kanji">Kanji / Kana ➔ English</option>
+      <option value="reading">Kanji ➔ Reading (Romaji/Kana)</option>
+      <option value="jukugo_reading">Compound Onyomi (Jukugo) ➔ Reading</option>
       <option value="jukugo_english">Compound Onyomi (Jukugo) ➔ English</option>
-      <option value="n5reading">All N5 Kanji ➔ Reading</option>
-      <option value="kanji">All Kanji/Kana ➔ English</option>
-      <option value="kana">Furigana ➔ English</option>
-      <option value="english">English ➔ Japanese</option>
+      <option value="english">English ➔ Japanese Reading</option>
       <option value="mixed">Mixed Drill</option>
     </select>
   </div>
@@ -401,29 +422,32 @@
     <div class="card-inner" id="cardInner">
       <div class="card-front">
         <div class="card-meta">
-          <span id="promptLabel">KANJI</span>
+          <span id="promptLabel">VERB ACTION</span>
           <div class="card-badges-container">
             <span class="card-status-badge status-mastered" id="cardMasteredFront">★ Mastered</span>
             <span class="card-status-badge status-unseen" id="cardStatusFront">Unseen</span>
             <button class="icon-btn" id="speakerBtn" style="padding:4px 8px; font-size:1rem;" title="Listen">🔊</button>
           </div>
         </div>
+        <div class="action-icon-badge" id="cardIconFront">🏃</div>
         <div class="prompt-text" id="promptText">Loading...</div>
         <div class="tap-hint">Tap card or press [Flip] to reveal</div>
       </div>
       <div class="card-back">
         <div class="card-meta">
-          <span>ANSWER</span>
+          <span>ANSWER & MNEMONIC</span>
           <div class="card-badges-container">
             <span class="card-status-badge status-mastered" id="cardMasteredBack">★ Mastered</span>
             <span class="card-status-badge status-unseen" id="cardStatusBack">Unseen</span>
             <span id="lessonTag" style="color:var(--accent);">L1</span>
           </div>
         </div>
-        <div style="margin: auto 0; display:flex; flex-direction:column; gap:6px;">
+        <div style="margin: auto 0; display:flex; flex-direction:column; gap:4px;">
+          <div class="action-icon-badge" id="cardIconBack" style="font-size:1.8rem;">🏃</div>
           <div class="answer-kana" id="ansKana">--</div>
           <div class="answer-romaji" id="ansRomaji">--</div>
           <div class="answer-meaning" id="ansMeaning">--</div>
+          <div class="mnemonic-box" id="mnemonicBox">--</div>
         </div>
         <div class="tap-hint">Tap to flip back</div>
       </div>
@@ -453,9 +477,116 @@
     <button class="btn btn-next" id="btnNext">Next ➔</button>
   </div>
 
-  <script src="vocab.js?v=3"></script>
+  <script src="vocab.js?v=4"></script>
 
   <script>
+    // Built-in Verb Action Graphics & Vivid Phonetic Mnemonics Database
+    const VERB_DICTIONARY = {
+      "いく": { icon: "🚶", m: "I go to **Iku**-za to *go* walking." },
+      "くる": { icon: "🏃‍♂️", m: "A **crew** comes over: *kuru* means *to come*." },
+      "はいる": { icon: "🚪", m: "High-roller (*hairu*) *enters* through the golden door." },
+      "たべる": { icon: "🍱", m: "Put food on the **table** (*tabe*) *to eat*." },
+      "のむ": { icon: "🍵", m: "**No more** (*nomu*) drink! *To drink*." },
+      "あそぶ": { icon: "🤹", m: "A soap bubble (*asobu*)! Children *play* with it." },
+      "もどる": { icon: "↩️", m: "**Motor** turns around *to return / come back*." },
+      "おしえる": { icon: "👨‍🏫", m: "Oh she yells (*oshieru*) when *teaching* grammar!" },
+      "ならう": { icon: "📖", m: "Study **now** (*narau*) *to learn* Japanese." },
+      "する": { icon: "⚡", m: "**Sure** (*suru*), I will *do* it!" },
+      "かす": { icon: "🤝", m: "Give me cash (*kasu*) if I *lend* you money." },
+      "かりる": { icon: "🤲", m: "Carry (*kari*) borrowed tools home: *to borrow*." },
+      "およぐ": { icon: "🏊", m: "**Oh yogi** (*oyogu*), watch him *swim* in the lake." },
+      "はしる": { icon: "🏃", m: "Hash it out (*hashiru*) while you *run*." },
+      "あるく": { icon: "🚶", m: "**A rook** (*aruku*) steps forward *to walk*." },
+      "かう": { icon: "🛍️", m: "The **cow** (*kau*) goes shopping *to buy* grass." },
+      "かく": { icon: "✍️", m: "Use a car-key (*kaku*) *to write* in stone." },
+      "やすむ": { icon: "🛌", m: "Yeah, snooze (*yasumu*) *to rest*." },
+      "あく": { icon: "🪑", m: "**Ah, cool** (*aku*)! A seat became *vacant*." },
+      "あう": { icon: "👥", m: "**Ow**! When we *meet*, we bump heads (*au*)." },
+      "あける": { icon: "🚪", m: "**A kettle** (*akeru*) boils, so *open* the lid." },
+      "しめる": { icon: "🚪", m: "**She made** (*shime*) us *close* the window." },
+      "のる": { icon: "🚆", m: "**No room** (*noru*) on the train, but I *get on*." },
+      "おりる": { icon: "🚉", m: "**Oh really** (*oriru*)? Time to *get off* the train." },
+      "みる": { icon: "👀", m: "Look in the **mirror** (*miru*) *to see*." },
+      "のりかえる": { icon: "🔀", m: "Ride and exchange (*norikaeru*) = *to transfer*." },
+      "つく": { icon: "🏁", m: "Train goes choo-choo (*tsuku*) as we *arrive*." },
+      "でる": { icon: "🚪", m: "**Dare** to *leave / go out* into the storm." },
+      "まがる": { icon: "↪️", m: "Magician (*magaru*) *turns* the corner." },
+      "とめる": { icon: "🛑", m: "**Toe made** car *stop*: *to stop / park*." },
+      "はたらく": { icon: "💼", m: "Put on hard hat (*hataraku*) *to work*." },
+      "うたう": { icon: "🎤", m: "Sing **to us** (*utau*): *to sing* a song." },
+      "もつ": { icon: "✊", m: "Don't drop the **mats** (*motsu*) you *hold*." },
+      "すう": { icon: "🚬", m: "**Sue** inhaled smoke (*suu*) *to smoke*." },
+      "すむ": { icon: "🏠", m: "**Sumo** wrestler *lives / resides* here (*sumu*)." },
+      "まつ": { icon: "⏱️", m: "**Mats** sit by the door as they *wait*." },
+      "ねる": { icon: "😴", m: "**Nail** sleepy head to pillow *to sleep* (*neru*)." },
+      "とまる": { icon: "🏨", m: "Tomorrow (*tomaru*), we *stay the night* at hotel." },
+      "しる": { icon: "💡", m: "**She knew** her soup (*shiru*) = *to know*." },
+      "かえる": { icon: "🏡", m: "A **frog** (*kaeru*) hops back home *to return*." },
+      "おきる": { icon: "⏰", m: "**Awake here** (*okiru*) *to get up* early." },
+      "わかる": { icon: "🧠", m: "**Walk right** (*wakaru*) into meaning: *to understand*." },
+      "えがく": { icon: "🎨", m: "Egg act (*egaku*): artist *draws* eggs." },
+      "あげる": { icon: "🎁", m: "Hands up high (*ageru*) *to give* or *lift up*." },
+      "もらう": { icon: "🎁", m: "**More** (*morau*) gifts *to receive*." },
+      "かえす": { icon: "↩️", m: "**Ka-yes**! *Return* what you borrowed (*kaesu*)." },
+      "かかる": { icon: "⏳", m: "**Car cars** (*kakaru*) *cost / take time*." },
+      "あらう": { icon: "🧼", m: "**A row** (*arau*) of dishes *to wash*." },
+      "あびる": { icon: "🚿", m: "**A bull** (*abiru*) *takes a shower*." },
+      "おわる": { icon: "🏁", m: "**Oh war** is over: *to end / finish* (*owaru*)." },
+      "はじまる": { icon: "🎬", m: "Hajime (*hajimaru*)! Match *begins*." },
+      "みがく": { icon: "🪥", m: "**Me-gargle** (*migaku*) then *brush* teeth." },
+      "とる": { icon: "📸", m: "**Toll** booth *takes a picture* (*toru*)." },
+      "つくる": { icon: "🔨", m: "**Two crew** (*tsukuru*) *make* a table." },
+      "すわる": { icon: "🪑", m: "**Swallow** sits (*suwaru*) on wire *to sit*." },
+      "おくる": { icon: "📦", m: "**Oak crew** (*okuru*) *sends* parcels." },
+      "きく": { icon: "🎧", m: "**Kick** the speaker *to hear / listen* (*kiku*)." },
+      "だす": { icon: "📤", m: "**Dust** (*dasu*) papers *to take out / submit*." },
+      "はれる": { icon: "☀️", m: "**Hare** hops when sky *clears up* (*hareru*)." },
+      "ふる": { icon: "🌧️", m: "**Full** rain clouds *fall* (*furu*)." },
+      "ふく": { icon: "💨", m: "Wind blows **foo-koo** (*fuku*): *to blow*." },
+      "のぼる": { icon: "🧗", m: "**No boring** (*noboru*) trail *to climb* Mt Fuji." },
+      "かつ": { icon: "🏆", m: "Eat **cutlet** (*katsu*) *to win* the game." },
+      "しらべる": { icon: "🔍", m: "**She labels** files *to examine / search* (*shiraberu*)." },
+      "でかける": { icon: "🚶‍♂️", m: "Deck out car (*dekakeru*) *to go out*." },
+      "おもう": { icon: "💭", m: "**Oh more** (*omou*) thoughts *to think*." },
+      "いう": { icon: "🗣️", m: "Hear **you** (*iu*) *say* words." },
+      "はく": { icon: "👖", m: "**Hike** (*haku*) pants up *to wear* below waist." },
+      "きる": { icon: "👔", m: "**Kill** the chill: *wear* shirt above waist (*kiru*)." },
+      "かぶる": { icon: "🧢", m: "**Cap on** brain (*kaburu*): *wear on head*." },
+      "ぬぐ": { icon: "👟", m: "**No good** muddy boots: *take off clothes/shoes* (*nugu*)." },
+      "ひく": { icon: "🎸", m: "**He can** (*hiku*) *play guitar* / *catch cold* / *pull*." },
+      "はなす": { icon: "💬", m: "**Ha! Nice** (*hanasu*) talk: *to speak*." },
+      "こたえる": { icon: "🙋", m: "Teacher calls (*kotaeru*) for the *answer*." },
+      "おく": { icon: "📦", m: "**Oak** box: *put down / place* (*oku*)." },
+      "うる": { icon: "🏷️", m: "You sell **wool** (*uru*): *to sell*." },
+      "たのむ": { icon: "🙏", m: "**Tan mom** (*tanomu*) asks *to request*." },
+      "よぶ": { icon: "📢", m: "**Yo boy** (*yobu*)! *Call / invite* him." },
+      "こまる": { icon: "😰", m: "Coma alert (*komaru*): *in trouble*." },
+      "つとめる": { icon: "🏢", m: "Two tomatoes (*tsutomeru*) *work for company*." },
+      "てつだう": { icon: "🤝", m: "Tetsu doubts he can, so *help* (*tetsudau*)." },
+      "たつ": { icon: "🧍", m: "**Tats** on legs as you *stand up* (*tatsu*)." },
+      "みせる": { icon: "🖼️", m: "**Miss L** (*miseru*) will *show* the picture." },
+      "つける": { icon: "💡", m: "**Two kettles** (*tsukeru*) *turn on* lights." },
+      "けす": { icon: "🔌", m: "**Kiss** light goodbye: *turn off / erase* (*kesu*)." },
+      "おぼえる": { icon: "🧠", m: "**Oh boy** (*oboeru*), I *remember* it now!" },
+      "わすれる": { icon: "🤷", m: "**Was real**? I *forget* (*wasureru*)." },
+      "つかう": { icon: "🛠️", m: "Two cows (*tsukau*) *use* plough." },
+      "うまれる": { icon: "👶", m: "A mother (*umareru*) bears child: *be born*." },
+      "がんばる": { icon: "💪", m: "Gambler holds on: *do your best* (*ganbaru*)." },
+      "とぶ": { icon: "🕊️", m: "**Toe big** but bird *flies* (*tobu*)." },
+      "きえる": { icon: "💨", m: "Key errs (*kieru*) and *disappears* into thin air." },
+      "わたす": { icon: "🤝", m: "Waiters (*watasu*) *hand over* tray." },
+      "わたる": { icon: "🌉", m: "**Water** below as you *cross bridge* (*wataru*)." },
+      "できる": { icon: "✨", m: "Deck rules (*dekiru*): yes you *can* do it!" }
+    };
+
+    function isVerbEntry(card) {
+      if (!card) return false;
+      const cleanKana = (card.f || "").replace(/[^ぁ-ん]/g, "");
+      if (VERB_DICTIONARY[cleanKana]) return true;
+      const e = (card.e || "").toLowerCase();
+      return e.startsWith("to ") || e.includes(" / to ") || e.includes("to get");
+    }
+
     const N5_KANJI_SET = new Set([
       "一","二","三","四","五","六","七","八","九","十","百","千","万","円","年","日","月","火","水","木","金","土",
       "今","前","後","午","朝","昼","晩","夜","分","半","時","週","間","毎","先","来","去","何",
@@ -540,6 +671,8 @@
     const cardInner = document.getElementById('cardInner');
     const promptText = document.getElementById('promptText');
     const promptLabel = document.getElementById('promptLabel');
+    const cardIconFront = document.getElementById('cardIconFront');
+    const cardIconBack = document.getElementById('cardIconBack');
     const cardStatusFront = document.getElementById('cardStatusFront');
     const cardStatusBack = document.getElementById('cardStatusBack');
     const cardMasteredFront = document.getElementById('cardMasteredFront');
@@ -547,6 +680,7 @@
     const ansKana = document.getElementById('ansKana');
     const ansRomaji = document.getElementById('ansRomaji');
     const ansMeaning = document.getElementById('ansMeaning');
+    const mnemonicBox = document.getElementById('mnemonicBox');
     const lessonTag = document.getElementById('lessonTag');
     const stats = document.getElementById('stats');
     const statusMsg = document.getElementById('statusMsg');
@@ -611,7 +745,7 @@
       } else {
         reviewFailuresBtn.classList.remove('active');
         
-        // 1. Filter by Mastery Status (Top Level)
+        // 1. Filter by Mastery Status
         const selectedMastery = masteryFilter ? masteryFilter.value : 'unmastered';
         if (selectedMastery === 'unmastered') {
           filtered = filtered.filter(item => !masteredCardsSet.has(getCardKey(item)));
@@ -619,19 +753,19 @@
           filtered = filtered.filter(item => masteredCardsSet.has(getCardKey(item)));
         }
 
-        // 2. Filter by Lesson
-        const selectedLesson = lessonFilter ? lessonFilter.value : 'all';
-        if (selectedLesson !== 'all') {
+        // 2. Filter by Lesson or Verb Category
+        const selectedLesson = lessonFilter ? lessonFilter.value : 'verbs';
+        if (selectedLesson === 'verbs') {
+          filtered = filtered.filter(item => isVerbEntry(item));
+        } else if (selectedLesson !== 'all') {
           const num = parseInt(selectedLesson, 10);
           filtered = filtered.filter(item => item.l === num);
         }
 
-        // 3. Filter by Prompt / Word Type
-        const activeModeVal = promptMode ? promptMode.value : 'jukugo_reading';
+        // 3. Filter by Prompt Mode
+        const activeModeVal = promptMode ? promptMode.value : 'kanji';
         if (activeModeVal === 'jukugo_reading' || activeModeVal === 'jukugo_english') {
           filtered = filtered.filter(item => isJukugoWord(item));
-        } else if (activeModeVal === 'n5reading') {
-          filtered = filtered.filter(item => isStrictN5KanjiWord(item.k));
         }
       }
 
@@ -642,15 +776,10 @@
     }
 
     function getActiveMode() {
-      const mode = promptMode ? promptMode.value : 'jukugo_reading';
-      if (mode === 'mixed') {
-        const modes = ['jukugo_reading', 'n5reading', 'kanji', 'kana', 'english'];
-        return modes[Math.floor(Math.random() * modes.length)];
-      }
-      return mode;
+      return promptMode ? promptMode.value : 'kanji';
     }
 
-    let activeCardMode = 'jukugo_reading';
+    let activeCardMode = 'kanji';
 
     function setBadgeVisual(el, status) {
       el.className = 'card-status-badge';
@@ -690,7 +819,7 @@
         masteredCardsSet.delete(key);
         persistMasteredSet(masteredCardsSet);
         updateMasteredButtonVisual(false);
-        statusMsg.textContent = "Moved back to unmastered cohort.";
+        statusMsg.textContent = "Moved back to active cohort.";
         statusMsg.className = "status-msg info";
       } else {
         masteredCardsSet.add(key);
@@ -711,13 +840,10 @@
 
       if (!currentDeck || currentDeck.length === 0) {
         promptLabel.textContent = "INFO";
-        if (masteryFilter.value === 'mastered') {
-          promptText.innerHTML = "No mastered cards here.<br><span style='font-size:1rem;color:var(--text-muted);'>Tag cards with ★ Mastered to see them here.</span>";
-        } else if (masteryFilter.value === 'unmastered') {
-          promptText.innerHTML = "All caught up! 🎉<br><span style='font-size:1rem;color:var(--text-muted);'>No unmastered cards remaining in this filter.</span>";
-        } else {
-          promptText.innerHTML = "No cards match filter";
-        }
+        cardIconFront.style.display = "none";
+        cardIconBack.style.display = "none";
+        mnemonicBox.style.display = "none";
+        promptText.innerHTML = "No cards remaining in filter!";
         ansKana.textContent = "--";
         ansRomaji.textContent = "--";
         ansMeaning.textContent = "--";
@@ -734,6 +860,23 @@
       const card = currentDeck[currentIndex];
       activeCardMode = getActiveMode();
 
+      // Retrieve Visual Cue & Mnemonic Data
+      const cleanF = (card.f || "").replace(/[^ぁ-ん]/g, "");
+      const verbData = VERB_DICTIONARY[cleanF];
+
+      if (verbData) {
+        cardIconFront.textContent = verbData.icon;
+        cardIconBack.textContent = verbData.icon;
+        cardIconFront.style.display = "block";
+        cardIconBack.style.display = "block";
+        mnemonicBox.style.display = "block";
+        mnemonicBox.innerHTML = `<strong>Mnemonic:</strong> ${verbData.m}`;
+      } else {
+        cardIconFront.style.display = "none";
+        cardIconBack.style.display = "none";
+        mnemonicBox.style.display = "none";
+      }
+
       const currentStatus = sessionHistory.get(getCardKey(card)) || 'unseen';
       setBadgeVisual(cardStatusFront, currentStatus);
       setBadgeVisual(cardStatusBack, currentStatus);
@@ -741,22 +884,18 @@
       const isMastered = masteredCardsSet.has(getCardKey(card));
       updateMasteredButtonVisual(isMastered);
 
-      if (activeCardMode === 'jukugo_reading') {
+      if (activeCardMode === 'reading') {
+        promptLabel.textContent = isVerbEntry(card) ? "VERB ➔ READING" : "KANJI ➔ READING";
+        promptText.innerHTML = formatPromptKanji(card.k || card.f);
+        userInput.placeholder = "Type/speak reading (Romaji or Kana)...";
+      } else if (activeCardMode === 'jukugo_reading') {
         promptLabel.textContent = "COMPOUND ON'YOMI ➔ READING";
         promptText.innerHTML = formatPromptKanji(card.k);
-        userInput.placeholder = "Type/speak reading (Romaji or Kana)...";
+        userInput.placeholder = "Type/speak reading...";
       } else if (activeCardMode === 'jukugo_english') {
         promptLabel.textContent = "COMPOUND ON'YOMI ➔ ENGLISH";
         promptText.innerHTML = formatPromptKanji(card.k);
         userInput.placeholder = "Type/speak English meaning...";
-      } else if (activeCardMode === 'n5reading') {
-        promptLabel.textContent = "KANJI ➔ READING (ROMAJI/KANA)";
-        promptText.innerHTML = formatPromptKanji(card.k || card.f);
-        userInput.placeholder = "Type/speak reading...";
-      } else if (activeCardMode === 'kanji') {
-        promptLabel.textContent = "KANJI ➔ ENGLISH MEANING";
-        promptText.innerHTML = formatPromptKanji(card.k || card.f);
-        userInput.placeholder = "Type/speak English...";
       } else if (activeCardMode === 'kana') {
         promptLabel.textContent = "FURIGANA ➔ ENGLISH";
         promptText.textContent = card.f;
@@ -765,6 +904,10 @@
         promptLabel.textContent = "ENGLISH ➔ JAPANESE";
         promptText.textContent = card.e.split('/')[0].trim();
         userInput.placeholder = "Type/speak Japanese reading...";
+      } else {
+        promptLabel.textContent = isVerbEntry(card) ? "VERB ➔ ENGLISH" : "KANJI / KANA ➔ ENGLISH";
+        promptText.innerHTML = formatPromptKanji(card.k || card.f);
+        userInput.placeholder = "Type/speak English meaning...";
       }
 
       ansKana.textContent = card.f;
@@ -774,7 +917,7 @@
       updateStatsHeader();
 
       if (toggleAutoSpeak && toggleAutoSpeak.checked) {
-        if (activeCardMode !== 'jukugo_reading' && activeCardMode !== 'n5reading') {
+        if (activeCardMode !== 'reading' && activeCardMode !== 'jukugo_reading') {
           triggerAudioPrompt(() => {
             if (toggleAutoListen && toggleAutoListen.checked) {
               listenTimer = setTimeout(spawnVoiceSession, 350);
@@ -853,7 +996,7 @@
       const cardKey = getCardKey(card);
       let isCorrect = false;
 
-      if (activeCardMode === 'jukugo_reading' || activeCardMode === 'n5reading' || activeCardMode === 'english') {
+      if (activeCardMode === 'reading' || activeCardMode === 'jukugo_reading' || activeCardMode === 'english') {
         const cleanedRomaji = cleanStr(card.r);
         const altRomaji = cleanedRomaji.replace(/oo/g, 'ou').replace(/ee/g, 'ei');
         const cleanKana = cleanStr(card.f);
@@ -958,7 +1101,7 @@
         const rec = new SpeechRec();
         rec.continuous = false;
         rec.interimResults = false;
-        const expectsJapanese = (activeCardMode === 'jukugo_reading' || activeCardMode === 'n5reading' || activeCardMode === 'english');
+        const expectsJapanese = (activeCardMode === 'reading' || activeCardMode === 'jukugo_reading' || activeCardMode === 'english');
         rec.lang = expectsJapanese ? 'ja-JP' : 'en-US';
 
         rec.onstart = () => {
